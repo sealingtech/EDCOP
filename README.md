@@ -20,7 +20,7 @@ The following sections will walk trhough building the DPDK and Openvswitch RPM p
 ---
 
 ```shell
-yum install net-tools mlocate vim git epel-release wget patch rpm-build gcc openssl-devel checkpolicy selinux-policy-devel htop kernel-devel doxygen python-six libcap-ng-devel
+yum install net-tools mlocate vim git epel-release wget patch rpm-build gcc openssl-devel checkpolicy selinux-policy-devel htop kernel-devel doxygen python-six libcap-ng-devel isomd5sum syslinux gcc createrepo mkisofs
 ```
 
 ### Building DPDK Packages
