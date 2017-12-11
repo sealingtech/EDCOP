@@ -8,11 +8,19 @@ The EDCOP is a platform to deploy virtual network defense tools on.
 ## Build Requirements
 ---
 EDCOP requires the following items to build:
-*Centos 7.3 ISO (build 1611)
+*Centos 7 ISO (build 1611)
 *openvswitch RPM
 *openvswitch-devel RPM
 *dpdk-stable RPM
 *dpdk-stable-devel RPM
+
+**NOTE**: Many of these packages are pre-built and available at the SealingTech RPM repo. You can install that repo using:
+
+```shell
+rpm -ivh http://repos.sealingtech.org/edcop/edcop-repo-1-0.noarch.rpm
+yum --disablerepo=\* --enablerepo=edcop install openvswitch kubernetes-cni kubeadm kubectl kubelet dpdk-stable
+```
+
 
 The following sections will walk trhough building the DPDK and Openvswitch RPM packages.
 
