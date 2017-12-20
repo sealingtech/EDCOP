@@ -1,4 +1,4 @@
-%include /run/install/repo/ks/pre-select-network.ks
+%include /run/install/repo/ks/bluebox/pre-select-network.ks
 
 
 # System authorization information
@@ -19,7 +19,7 @@ selinux --disabled
 # Reboot when complete
 reboot
 
-%include /run/install/repo/ks/network.ks
+%include /run/install/repo/ks/bluebox/network.ks
 
 # pre-hostname is generated within the pre-select-network section
 %include /tmp/pre-hostname
@@ -31,11 +31,11 @@ timezone America/New_York --isUtc
 # System bootloader configuration
 
 
-%include /run/install/repo/ks/storage.ks
+%include /run/install/repo/ks/bluebox/storage.ks
 
-%include /run/install/repo/ks/packages.ks
+%include /run/install/repo/ks/bluebox/packages.ks
 
-%include /run/install/repo/ks/post-nochroot.ks
+%include /run/install/repo/ks/bluebox/post-nochroot.ks
 
-%include /run/install/repo/ks/post-chroot.ks
+%include /run/install/repo/ks/bluebox/post-chroot.ks
 

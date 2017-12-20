@@ -2,6 +2,7 @@
 BUILDDIR=~/build
 ISOLINUXDIR=$BUILDDIR/isolinux
 mkdir -p $ISOLINUXDIR
+curl -L -o $BUILDDIR/comps.xml `curl -s http://mirrors.mit.edu/centos/7/os/x86_64/repodata/ | grep -o -P '(<a href=\")\K.*comps.xml(?=\")'`
 cp /mnt/repodata/*comps.xml $BUILDDIR/comps.xml
 mkdir -p $ISOLINUXDIR/{EXTRAS,images,isolinux,ks,LiveOS,Packages,repodata}
 cp /mnt/TRANS.TBL $ISOLINUXDIR
