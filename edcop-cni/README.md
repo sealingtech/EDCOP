@@ -39,3 +39,8 @@ govendor sync
 /home/admin/go/bin/govendor sync
 ./build.sh
 
+## Instructions for building the RPM
+
+In each of the build directories should be a ./bin folder with the assoicated binary or binaries. Copy these to an edcop-cni-1 directory.
+
+rpmbuild -bb edcop-cni.spec

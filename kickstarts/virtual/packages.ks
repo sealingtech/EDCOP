@@ -6,6 +6,7 @@ openscap
 openscap-scanner
 scap-security-guide
 #EDCOP specific packages
+edcop-cni
 dpdk-stable
 dpdk-stable-devel
 openvswitch
@@ -30,6 +31,7 @@ nginx
 dnsmasq
 syslinux
 epel-release
+#Remove unused
 -aic94xx-firmware
 -iwl6000-firmware
 -iwl6050-firmware
