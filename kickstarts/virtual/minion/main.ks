@@ -1,4 +1,4 @@
-pre
+%pre
 echo "network  --device=lo --hostname=MINION-$RANDOM" > /tmp/pre-hostname
 %end
 
@@ -7,7 +7,6 @@ echo "network  --device=lo --hostname=MINION-$RANDOM" > /tmp/pre-hostname
 auth --enableshadow --passalgo=sha512
 # Use CDROM installation media
 install
-cdrom
 # Use cmdline install
 text
 # Keyboard layouts
@@ -21,9 +20,7 @@ selinux --disabled
 # Reboot when complete
 reboot
 
-network --bootproto=dhcp --device=eth0 --nodefroute --noipv4 --noipv6
-network --bootproto=dhcp --device=eth1 --nodefroute --ipv6=auto --activate
-network --bootproto=dhcp --device=eth2 --activate
+network --bootproto=dhcp --device=eth0
 %include /tmp/pre-hostname
 
 # Temorarily disable firewall while builing
