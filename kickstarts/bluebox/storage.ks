@@ -1,5 +1,4 @@
-clearpart --all --initlabel --drives=RAID0_0
-bootloader --append=" crashkernel=auto biosdevname=0 net.ifnames=0 --location=mbr --boot-drive=RAID0_0"
+%include /tmp/pre-storage
 
 part /boot --size=200 --fstype=xfs --asprimary
 part biosboot --fstype=biosboot --size=1

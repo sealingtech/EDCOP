@@ -9,7 +9,7 @@ PXENETMASK=255.255.255.0
 DHCPSTART=10.50.50.100
 DHCPEND=10.50.50.150
 
-
+echo "##### PXE NETWORK SETTINGS ####"
 echo "Default Values are   :  "
 echo "HOSTNAME             : " $HOSTNAME
 echo "PXE-Server Interface : " $PXEIF
@@ -65,6 +65,20 @@ fi
 echo "network  --device=lo --hostname=$HOSTNAME" > /tmp/pre-hostname
 echo "network --bootproto=static --device=$PXEIF --ip=$PXEIP --netmask=$PXENETMASK --ipv6=auto" >> /tmp/pre-hostname
 
+echo "#### INSTALLATION DRIVE SETTINGS ####"
+echo "Please Select a Drive to install EDCOP on: "
+select opt in `echo $(list-harddrives) | cut -d ' ' -f1` custom; do
+	case $opt in
+	  custom) read -p "Enter a drive path (e.g. RAID0_0): " DRIVE
+	    break ;;
+	  *) DRIVE=`echo $opt | head -n1 | awk '{print $1}'`
+	    break ;;
+	esac
+done
+
+echo "bootloader --append=\" crashkernel=auto biosdevname=0 net.ifnames=0 --location=mbr --boot-drive=$DRIVE\"" >/tmp/pre-storage
+echo "clearpart --all --initlabel --drives=$DRIVE" >>/tmp/pre-storage
+
 echo "#!/bin/bash" >/tmp/vars
 echo "HOSTNAME=$HOSTNAME" >> /tmp/vars
 echo "PXEIF=$PXEIF" >> /tmp/vars
@@ -73,6 +87,7 @@ echo "PXENETMASK=$PXENETMASK" >> /tmp/vars
 echo "PXENET=$PXENET" >> /tmp/vars
 echo "DHCPSTART=$DHCPSTART" >> /tmp/vars
 echo "DHCPEND=$DHCPEND" >> /tmp/vars
+echo "DRIVE=$DRIVE" >> /tmp/vars
 
 echo
 sleep 1
