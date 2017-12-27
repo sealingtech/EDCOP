@@ -1,5 +1,4 @@
-clearpart --all --initlabel --drives=vda
-bootloader --append=" crashkernel=auto biosdevname=0 net.ifnames=0 --location=mbr --boot-drive=vda"
+%include /tmp/pre-storage
 
 part /boot --size=200 --fstype=xfs --asprimary
 part biosboot --fstype=biosboot --size=1

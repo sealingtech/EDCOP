@@ -24,23 +24,22 @@ CNI Plugins required to utilize multiple networks within the EDCOP containers
 
 %install
 install -m 0755 -d  %{buildroot}/opt/cni/bin/
-#cp -a * %{buildroot}/opt/cni/bin/
-install bridge %{buildroot}/opt/cni/bin/bridge
-install dhcp $RPM_BUILD_ROOT/opt/cni/bin/dhcp
+#install bridge %{buildroot}/opt/cni/bin/bridge
+#install dhcp $RPM_BUILD_ROOT/opt/cni/bin/dhcp
 install fixipam $RPM_BUILD_ROOT/opt/cni/bin/fixipam
-install flannel $RPM_BUILD_ROOT/opt/cni/bin/flannel
+#install flannel $RPM_BUILD_ROOT/opt/cni/bin/flannel
 install host-device $RPM_BUILD_ROOT/opt/cni/bin/host-device
-install host-local $RPM_BUILD_ROOT/opt/cni/bin/host-local
-install ipvlan $RPM_BUILD_ROOT/opt/cni/bin/ipvlan
-install loopback $RPM_BUILD_ROOT/opt/cni/bin/loopback
-install macvlan $RPM_BUILD_ROOT/opt/cni/bin/macvlan
+#install host-local $RPM_BUILD_ROOT/opt/cni/bin/host-local
+#install ipvlan $RPM_BUILD_ROOT/opt/cni/bin/ipvlan
+#install loopback $RPM_BUILD_ROOT/opt/cni/bin/loopback
+#install macvlan $RPM_BUILD_ROOT/opt/cni/bin/macvlan
 install multus $RPM_BUILD_ROOT/opt/cni/bin/multus
 install ovs $RPM_BUILD_ROOT/opt/cni/bin/ovs
 install portmap $RPM_BUILD_ROOT/opt/cni/bin/portmap
-install ptp $RPM_BUILD_ROOT/opt/cni/bin/ptp
-install sample $RPM_BUILD_ROOT/opt/cni/bin/sample
+#install ptp $RPM_BUILD_ROOT/opt/cni/bin/ptp
+#install sample $RPM_BUILD_ROOT/opt/cni/bin/sample
 install sriov $RPM_BUILD_ROOT/opt/cni/bin/sriov
-install tuning $RPM_BUILD_ROOT/opt/cni/bin/tuning
+#install tuning $RPM_BUILD_ROOT/opt/cni/bin/tuning
 install vlan $RPM_BUILD_ROOT/opt/cni/bin/vlan
 
 %clean

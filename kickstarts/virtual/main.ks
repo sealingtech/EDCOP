@@ -1,4 +1,4 @@
-%include /run/install/repo/ks/virtual/pre-select-network.ks
+%include /run/install/repo/ks/virtual/pre-select.ks
 
 
 # System authorization information
@@ -20,9 +20,6 @@ selinux --disabled
 reboot
 
 %include /run/install/repo/ks/virtual/network.ks
-
-# pre-hostname is generated within the pre-select-network section
-%include /tmp/pre-hostname
 
 # Root password
 rootpw --plaintext open.local.box

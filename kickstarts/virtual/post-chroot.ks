@@ -8,7 +8,18 @@ systemctl enable docker
 systemctl enable kubelet
 
 ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true
-openssl req -subj '/CN=edcop/O=Sealing Technologies Inc/L=Columbia/ST=Maryland/C=US' -new -newkey rsa:2048 -sha256 -days 3650 -nodes -x509 -keyout /etc/pki/tls/private/server.key -out /etc/pki/tls/certs/server.crt
+
+##### CREATE CA & CERTIFICATES #####
+
+mkdir -p /etc/pki/tls/csr
+
+openssl req -subj '/CN=edcop-root/O=Sealing Technologies Inc/L=Columbia/ST=Maryland/C=US' -new -newkey rsa:2048 -sha256 -days 7300 -nodes -x509 -extensions v3_ca -keyout /etc/pki/CA/private/edcop-root.key -out /etc/pki/CA/certs/edcop-root.crt
+
+openssl req -subj '/CN=edcop-master/O=Sealing Technologies Inc/L=Columbia/ST=Maryland/C=US' -new -newkey rsa:2048 -sha256 -days 7300 -nodes -keyout /etc/pki/tls/private/server.key -out /etc/pki/tls/csr/edcop-master.csr
+
+openssl x509 -req -days 7300 -extensions server_cert -set_serial 01 -CA /etc/pki/CA/certs/edcop-root.crt -CAkey /etc/pki/CA/private/edcop-root.key -in /etc/pki/tls/csr/edcop-master.csr -out /etc/pki/tls/certs/server.crt
+
+
 modprobe br-netfilter
 echo "br-netfilter" > /etc/modprobe.d/br-netfilter
 echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
@@ -18,6 +29,7 @@ sed -i --follow-symlinks 's/cgroup-driver=systemd/cgroup-driver=cgroupfs/g' /etc
 
 sed -i --follow-symlinks 's/\/usr\/share\/nginx\/html/\/EDCOP\/pxe/g' /etc/nginx/nginx.conf
 sed -i --follow-symlinks 's/80/5415/g' /etc/nginx/nginx.conf
+
 systemctl enable nginx
 systemctl enable dnsmasq
 
@@ -54,7 +66,10 @@ WorkingDirectory=/root
 WantedBy=multi-user.target
 EOF
 
+chmod +x /root/firstboot.sh
+
 sed -i --follow-symlinks "s/<insert-master-ip>/$PXEIP/g" /EDCOP/pxe/pxelinux.cfg/default
+sed -i --follow-symlinks "s/<insert-drive>/$DRIVE/g" /EDCOP/pxe/deploy/ks/virtual/minion/main.ks
 
 systemctl enable EDCOP-firstboot
 
