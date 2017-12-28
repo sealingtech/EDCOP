@@ -58,6 +58,7 @@ openscap
 openscap-scanner
 scap-security-guide
 #EDCOP specific packages
+edcop-cni
 dpdk-stable
 dpdk-stable-devel
 openvswitch
@@ -136,8 +137,8 @@ sed -i --follow-symlinks 's/cgroup-driver=systemd/cgroup-driver=cgroupfs/g' /etc
 #wget -P /opt/cni/bin -r -np -nH --cut-dirs=50 -R "TRANS.TBL" -R "index.html" http://<insert-master-ip>:5415/deploy/EXTRAS/multus-bins/
 #chmod 755 /opt/cni/bin/*
 
-#mkdir /root/.kube/
-#wget -P /root/.kube/ -r -np -nH --cut-dirs=50 -R "TRANS.TBL" -R "index.html" http://<insert-master-ip>:5415/deploy/EXTRAS/kubernetes
+mkdir /root/.kube/
+wget -P /root/.kube/ http://<insert-master-ip>:5415/deploy/EXTRAS/kubernetes/config
 
 
 cat <<EOF | tee /etc/systemd/system/minion-firstboot.service
