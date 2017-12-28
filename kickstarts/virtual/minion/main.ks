@@ -20,7 +20,8 @@ selinux --disabled
 # Reboot when complete
 reboot
 
-network --bootproto=dhcp --device=eth0
+network --bootproto=dhcp --device=eth0 --activate
+network --bootproto=dhcp --device=eth1 --nodefroute
 %include /tmp/pre-hostname
 
 # Temorarily disable firewall while builing
