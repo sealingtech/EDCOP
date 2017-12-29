@@ -76,7 +76,7 @@ select opt in `echo $(list-harddrives) | cut -d ' ' -f1` custom; do
 	esac
 done
 
-echo "bootloader --append=\" crashkernel=auto net.ifnames=0 --location=mbr --boot-drive=$DRIVE intel_iommu=on iommu=pt default_hugepagesz=1G hugepagesz=1G hugepages=4\"" >/tmp/pre-storage
+echo "bootloader --append=\" crashkernel=auto net.ifnames=0 --location=mbr --boot-drive=$DRIVE\"" >/tmp/pre-storage
 echo "clearpart --all --initlabel --drives=$DRIVE" >>/tmp/pre-storage
 
 echo "#!/bin/bash" >/tmp/vars

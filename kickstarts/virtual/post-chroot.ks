@@ -7,7 +7,7 @@ systemctl enable cockpit
 systemctl enable docker
 systemctl enable kubelet
 
-ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true
+#ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true
 
 ##### CREATE CA & CERTIFICATES #####
 

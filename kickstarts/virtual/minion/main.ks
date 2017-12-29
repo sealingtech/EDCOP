@@ -36,7 +36,8 @@ timezone America/New_York --isUtc
 
 clearpart --all --initlabel --drives=<insert-drive>
 
-bootloader --append=" crashkernel=auto net.ifnames=0 --location=mbr --boot-drive=<insert-drive>"
+bootloader --append=" crashkernel=auto net.ifnames=0 --location=mbr --boot-drive=<insert-drive> intel_iommu=on iommu=pt hugepages=2000"
+
 
 #autopart --type=lvm
 part /boot --size=200 --fstype=xfs --asprimary
@@ -115,7 +116,6 @@ systemctl enable cockpit
 systemctl enable docker
 systemctl enable kubelet
 
-ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true
 modprobe br-netfilter
 echo "br-netfilter" > /etc/modprobe.d/br-netfilter
 echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
@@ -164,6 +164,8 @@ cat <<'EOF' | tee /root/minion-firstboot.sh
 kubeadm join --token <insert-token> <insert-master-ip>:6443 --discovery-token-unsafe-skip-ca-verification
 systemctl start cockpit
 systemctl disable minion-firstboot
+
+ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true
 
 rm -f /root/minion-firstboot.sh
 rm -f /etc/systemd/system/minion-firstboot.service
