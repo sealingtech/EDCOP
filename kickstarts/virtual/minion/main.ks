@@ -40,9 +40,9 @@ bootloader --append=" crashkernel=auto net.ifnames=0 --location=mbr --boot-drive
 
 
 #autopart --type=lvm
-part /boot --size=200 --fstype=xfs --asprimary
-part biosboot --size=1 --fstype="biosboot"
-part pv.os --size=3000 --fstype=xfs --grow --asprimary
+part /boot --size=200 --fstype=xfs --ondisk=<insert-drive> --asprimary
+part biosboot --size=1 --fstype="biosboot" --ondisk=<insert-drive>
+part pv.os --size=3000 --fstype=xfs --grow --ondisk=<insert-drive> --asprimary
 
 volgroup vg00 pv.os
 logvol /              --vgname=vg00 --name=root  --fstype=xfs --size 5500 --maxsize 21000 --grow
@@ -172,6 +172,8 @@ rm -f /etc/systemd/system/minion-firstboot.service
 EOF
 
 chmod +x /root/minion-firstboot.sh
+
+echo "<insert-master-ip>        edcop-master master" >> /etc/hosts
 
 %end
 

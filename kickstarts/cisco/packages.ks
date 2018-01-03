@@ -7,6 +7,7 @@ openscap-scanner
 scap-security-guide
 #EDCOP specific packages
 edcop-cni
+edcop-registry
 dpdk-stable
 dpdk-stable-devel
 openvswitch

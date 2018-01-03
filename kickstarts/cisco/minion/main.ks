@@ -173,5 +173,7 @@ EOF
 
 chmod +x /root/minion-firstboot.sh
 
+echo "<insert-master-ip>        edcop-master master" >> /etc/hosts
+
 %end
 

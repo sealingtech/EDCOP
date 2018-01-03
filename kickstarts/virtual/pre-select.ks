@@ -67,7 +67,7 @@ echo "network --bootproto=static --device=$PXEIF --ip=$PXEIP --netmask=$PXENETMA
 
 echo "#### INSTALLATION DRIVE SETTINGS ####"
 echo "Please Select a Drive to install EDCOP on: "
-select opt in `echo $(list-harddrives) | cut -d ' ' -f1` custom; do
+select opt in `echo "$(list-harddrives)" | cut -d ' ' -f1` custom; do
 	case $opt in
 	  custom) read -p "Enter a drive path (e.g. RAID0_0): " DRIVE
 	    break ;;
@@ -78,6 +78,9 @@ done
 
 echo "bootloader --append=\" crashkernel=auto net.ifnames=0 --location=mbr --boot-drive=$DRIVE intel_iommu=on iommu=pt\"" >/tmp/pre-storage
 echo "clearpart --all --initlabel --drives=$DRIVE" >>/tmp/pre-storage
+echo "part /boot --size=200 --fstype=xfs --asprimary --ondisk $DRIVE" >>/tmp/pre-storage
+echo "part biosboot --fstype=biosboot --size=1 --ondisk $DRIVE" >>/tmp/pre-storage
+echo "part pv.os --size=3000 --fstype=xfs --grow --asprimary --ondisk $DRIVE" >>/tmp/pre-storage
 
 echo "#!/bin/bash" >/tmp/vars
 echo "HOSTNAME=$HOSTNAME" >> /tmp/vars
