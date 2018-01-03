@@ -25,10 +25,9 @@ fi
 systemctl disable EDCOP-firstboot
 systemctl start cockpit
 
-#for i in $(find /EDCOP/images/ -type f -name *.gz);do gunzip -c $i | docker load; done
 gunzip -c /EDCOP/images/docker-registry.tar.gz | docker load
 docker run -d -p 5000:5000 --restart=always --name edcop-registry registry:2
-
+for i in $(find /EDCOP/images/edcop-master/ -type f -name *.gz);do gunzip -c $i | docker load; done
 
 ping_gw || (echo "Script can not start with no internet" && exit 1)
 

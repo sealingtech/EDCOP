@@ -140,6 +140,8 @@ sed -i --follow-symlinks 's/cgroup-driver=systemd/cgroup-driver=cgroupfs/g' /etc
 
 mkdir /root/.kube/
 wget -P /root/.kube/ http://<insert-master-ip>:5415/deploy/EXTRAS/kubernetes/config
+wget -P /etc/pki/ca-trust/source/anchors/ http://<insert-master-ip>:5415/deploy/EXTRAS/certs/edcop-root.crt
+update-ca-trust
 
 
 cat <<EOF | tee /etc/systemd/system/minion-firstboot.service
@@ -173,7 +175,7 @@ EOF
 
 chmod +x /root/minion-firstboot.sh
 
-echo "<insert-master-ip>        edcop-master master" >> /etc/hosts
+echo "<insert-master-ip>        edcop-master.local master" >> /etc/hosts
 
 %end
 

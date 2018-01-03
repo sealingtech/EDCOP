@@ -8,6 +8,7 @@ scap-security-guide
 #EDCOP specific packages
 edcop-cni
 edcop-registry
+edcop-master-images
 dpdk-stable
 dpdk-stable-devel
 openvswitch

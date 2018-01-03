@@ -15,10 +15,13 @@ mkdir -p /etc/pki/tls/csr
 
 openssl req -subj '/CN=edcop-root/O=Sealing Technologies Inc/L=Columbia/ST=Maryland/C=US' -new -newkey rsa:2048 -sha256 -days 7300 -nodes -x509 -extensions v3_ca -keyout /etc/pki/CA/private/edcop-root.key -out /etc/pki/CA/certs/edcop-root.crt
 
-openssl req -subj '/CN=edcop-master/O=Sealing Technologies Inc/L=Columbia/ST=Maryland/C=US' -new -newkey rsa:2048 -sha256 -days 7300 -nodes -keyout /etc/pki/tls/private/server.key -out /etc/pki/tls/csr/edcop-master.csr
+openssl req -subj '/CN=edcop-master.local/O=Sealing Technologies Inc/L=Columbia/ST=Maryland/C=US' -new -newkey rsa:2048 -sha256 -days 7300 -nodes -keyout /etc/pki/tls/private/server.key -out /etc/pki/tls/csr/edcop-master.csr
 
 openssl x509 -req -days 7300 -extensions server_cert -set_serial 01 -CA /etc/pki/CA/certs/edcop-root.crt -CAkey /etc/pki/CA/private/edcop-root.key -in /etc/pki/tls/csr/edcop-master.csr -out /etc/pki/tls/certs/server.crt
 
+mkdir -p /EDCOP/pxe/deploy/EXTRAS/certs
+cp /etc/pki/CA/certs/edcop-root.crt /EDCOP/pxe/deploy/EXTRAS/certs
+cp /etc/pki/tls/certs/server.crt /EDCOP/pxe/deploy/EXTRAS/certs
 
 modprobe br-netfilter
 echo "br-netfilter" > /etc/modprobe.d/br-netfilter
@@ -71,7 +74,7 @@ chmod +x /root/firstboot.sh
 sed -i --follow-symlinks "s/<insert-master-ip>/$PXEIP/g" /EDCOP/pxe/pxelinux.cfg/default
 sed -i --follow-symlinks "s/<insert-drive>/$DRIVE/g" /EDCOP/pxe/deploy/ks/virtual/minion/main.ks
 
-sed -i '/localhost/ s/$/ edcop-master master/' /etc/hosts
+sed -i '/localhost/ s/$/ edcop-master.local master/' /etc/hosts
 
 systemctl enable EDCOP-firstboot
 
