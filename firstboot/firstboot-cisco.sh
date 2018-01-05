@@ -25,15 +25,16 @@ fi
 systemctl disable EDCOP-firstboot
 systemctl start cockpit
 
-#for i in $(find /EDCOP/images/ -type f -name *.gz);do gunzip -c $i | docker load; done
-gunzip -c /EDCOP/images/docker-registry.tar.gz | docker load
+#gunzip -c /EDCOP/images/docker-registry.tar.gz | docker load
+#for i in $(find /EDCOP/images/edcop-master/ -type f -name *.gz);do gunzip -c $i | docker load; done
 docker run -d -p 5000:5000 --restart=always --name edcop-registry registry:2
 
+# No need for external connectivity. Using offline images for cluster.
 ping_gw || (echo "Script can not start with no internet" && exit 1)
 
 token=$(kubeadm token generate)
 
-kubeadm init --pod-network-cidr=10.244.0.0/16 --kubernetes-version 1.8.4 --token $token --token-ttl 0
+kubeadm init --pod-network-cidr=10.244.0.0/16 --kubernetes-version 1.9.1 --token $token --token-ttl 0
 
 sed -i --follow-symlinks "s/<insert-token>/$token/g" /EDCOP/pxe/deploy/ks/cisco/minion/main.ks
 
@@ -48,11 +49,30 @@ cp /etc/kubernetes/admin.conf /root/.kube/config
 cp /etc/kubernetes/admin.conf /EDCOP/pxe/deploy/EXTRAS/kubernetes/config
 chmod 644 /EDCOP/pxe/deploy/EXTRAS/kubernetes/config
 
+kubectl apply --token $token -f /EDCOP/kubernetes/networks/calico-multus-etcd.yaml
 kubectl apply --token $token -f /EDCOP/kubernetes/networks/crdnetwork.yaml
-kubectl apply --token $token -f /EDCOP/kubernetes/networks/kube-multus.yaml
-kubectl apply --token $token -f /EDCOP/kubernetes/networks/flannel-network.yaml
 kubectl apply --token $token -f /EDCOP/kubernetes/networks/ovs-network.yaml
 kubectl apply --token $token -f /EDCOP/kubernetes/kubernetes-dashboard-http.yaml 
 
+# We need to wait for the calico configuration to finish so we can read the contents of the config file
+while [ ! -f /etc/cni/net.d/10-multus.conf ]
+do
+  sleep 2
+done
+cat <<EOF | tee /EDCOP/kubernetes/networks/calico-network.yaml
+apiVersion: "kubernetes.com/v1"
+kind: Network
+metadata:
+  name: calico
+plugin: calico
+args: '[
+$(cat /etc/cni/net.d/10-multus.conf | jq .delegates[0])
+       ]'
+EOF
+
+kubectl apply --token $token -f /EDCOP/kubernetes/networks/calico-network.yaml
+
+# We aren't using Flannel Networking anymore. Calico is superior and policy-based
+#kubectl apply --token $token -f /EDCOP/kubernetes/networks/flannel-network.yaml
 #rm -rf /EDCOP/images
 

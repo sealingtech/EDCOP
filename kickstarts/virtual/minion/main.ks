@@ -1,5 +1,5 @@
 %pre
-echo "network  --device=lo --hostname=MINION-$RANDOM" > /tmp/pre-hostname
+echo "network  --device=lo --hostname=minion-$RANDOM" > /tmp/pre-hostname
 %end
 
 
@@ -175,6 +175,7 @@ EOF
 chmod +x /root/minion-firstboot.sh
 
 echo "<insert-master-ip>        edcop-master.local master" >> /etc/hosts
+sed -i "/localhost/ s/$/ $(hostname)/" /etc/hosts
 
 %end
 

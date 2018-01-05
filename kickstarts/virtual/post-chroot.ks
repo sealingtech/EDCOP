@@ -7,8 +7,6 @@ systemctl enable cockpit
 systemctl enable docker
 systemctl enable kubelet
 
-#ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true
-
 ##### CREATE CA & CERTIFICATES #####
 
 mkdir -p /etc/pki/tls/csr
@@ -74,7 +72,7 @@ chmod +x /root/firstboot.sh
 sed -i --follow-symlinks "s/<insert-master-ip>/$PXEIP/g" /EDCOP/pxe/pxelinux.cfg/default
 sed -i --follow-symlinks "s/<insert-drive>/$DRIVE/g" /EDCOP/pxe/deploy/ks/virtual/minion/main.ks
 
-sed -i '/localhost/ s/$/ edcop-master.local master/' /etc/hosts
+sed -i "/localhost/ s/$/ edcop-master.local $(hostname)/" /etc/hosts
 
 systemctl enable EDCOP-firstboot
 

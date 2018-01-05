@@ -1,0 +1,28 @@
+apiVersion: "kubernetes.com/v1"
+kind: Network
+metadata:
+  name: calico
+plugin: calico
+args: '[
+        {
+           "name": "k8s-pod-network",
+           "cniVersion": "0.3.0",
+           "type": "calico",
+           "hairpinMode": true,
+           "masterplugin": true,
+           "etcd_endpoints": "http://10.96.232.136:6666",
+           "log_level": "info",
+           "mtu": 1500,
+           "ipam": {
+               "type": "calico-ipam"
+           },
+           "policy": {
+               "type": "k8s",
+                "k8s_api_root": "https://10.96.0.1:443",
+                "k8s_auth_token": "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJrdWJlcm5ldGVzL3NlcnZpY2VhY2NvdW50Iiwia3ViZXJuZXRlcy5pby9zZXJ2aWNlYWNjb3VudC9uYW1lc3BhY2UiOiJrdWJlLXN5c3RlbSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VjcmV0Lm5hbWUiOiJjYWxpY28tY25pLXBsdWdpbi10b2tlbi1xYmZicSIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50Lm5hbWUiOiJjYWxpY28tY25pLXBsdWdpbiIsImt1YmVybmV0ZXMuaW8vc2VydmljZWFjY291bnQvc2VydmljZS1hY2NvdW50LnVpZCI6ImI4MGZkOTNmLWYxYzctMTFlNy1iYWMwLTAwMGMyOTZlZmZmMiIsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDprdWJlLXN5c3RlbTpjYWxpY28tY25pLXBsdWdpbiJ9.q96tIQmftf8m1nbjnShm39UL3MVR_7cJeg64kNYsO3ltZ8s6XkShX9oueeliSMjEyI-1OetANySG3w3kaxRVIXmwgYJkw212aFgwT1kITWsmipqIAgl2aXW0cdvGgSGMiSR1MXYnq2VP5nVTKHdZcmsW4DczlutUpS-edr3-FdrFr5GjRN0pD6yyhxA3SjZJVEGS4iYfp2cygQRrSdP_AFn2OhtOcOH3kVx0Ncb2tp9eJH0_fs1XsNvyzx8mF5hCL-XAi5VdeznF_PkIDde8UAKtyXaib2VRUd0cnKmNP-0uQ8AhxUaPMrMjXTH-DJaELW7n0itqifUuUINLPAwx6A"
+           },
+           "kubernetes": {
+               "kubeconfig": "/etc/cni/net.d/calico-kubeconfig"
+           }
+        }
+       ]'

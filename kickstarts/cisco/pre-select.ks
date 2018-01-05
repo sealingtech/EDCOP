@@ -2,7 +2,7 @@
 exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
 
-HOSTNAME="MASTER-$RANDOM"
+HOSTNAME="master-$RANDOM"
 PXEIF=eth4
 PXEIP=10.50.50.10
 PXENETMASK=255.255.255.0

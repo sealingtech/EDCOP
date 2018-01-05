@@ -73,7 +73,7 @@ chmod +x /root/firstboot.sh
 sed -i --follow-symlinks "s/<insert-master-ip>/$PXEIP/g" /EDCOP/pxe/pxelinux.cfg/default
 sed -i --follow-symlinks "s/<insert-drive>/$DRIVE/g" /EDCOP/pxe/deploy/ks/cisco/minion/main.ks
 
-sed -i '/localhost/ s/$/ edcop-master.local master/' /etc/hosts
+sed -i "/localhost/ s/$/ edcop-master.local $(hostname)/" /etc/hosts
 
 systemctl enable EDCOP-firstboot
 

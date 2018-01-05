@@ -1,5 +1,5 @@
 %pre
-echo "network  --device=lo --hostname=MINION-$RANDOM" > /tmp/pre-hostname
+echo "network  --device=lo --hostname=minion-$RANDOM" > /tmp/pre-hostname
 %end
 
 
