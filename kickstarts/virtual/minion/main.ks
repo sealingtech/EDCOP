@@ -163,6 +163,8 @@ cat <<'EOF' | tee /root/minion-firstboot.sh
 #!/bin/bash
 
 kubeadm join --token <insert-token> <insert-master-ip>:6443 --discovery-token-unsafe-skip-ca-verification
+kubectl label nodes $(hostname | awk '{print tolower($0)}') nodetype=worker --overwrite
+
 systemctl start cockpit
 systemctl disable minion-firstboot
 

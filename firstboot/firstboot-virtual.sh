@@ -53,6 +53,8 @@ kubectl apply --token $token -f /EDCOP/kubernetes/networks/calico-multus-etcd.ya
 kubectl apply --token $token -f /EDCOP/kubernetes/networks/crdnetwork.yaml
 kubectl apply --token $token -f /EDCOP/kubernetes/networks/ovs-network.yaml
 kubectl apply --token $token -f /EDCOP/kubernetes/kubernetes-dashboard-http.yaml 
+kubectl label nodes $(hostname | awk '{print tolower($0)}') nodetype=master --overwrite
+kubectl taint nodes $(hostname | awk '{print tolower($0)}') node-role.kubernetes.io/master:NoSchedule-
 
 # We need to wait for the calico configuration to finish so we can read the contents of the config file
 while [ ! -f /etc/cni/net.d/10-multus.conf ]

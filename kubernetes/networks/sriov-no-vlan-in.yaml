@@ -1,0 +1,18 @@
+apiVersion: "kubernetes.com/v1"
+kind: Network
+metadata:
+  name: sriov-no-vlan-in
+plugin: sriov
+args: '[
+       {
+                "if0": "eth3",
+                "vf": 0,
+                "ipam": {
+                  "type": "host-local",
+                  "subnet": "10.3.0.0/16",
+                  "rangeStart": "10.3.0.10",
+                  "rangeEnd": "10.3.0.150"
+                }
+        }
+]'
+

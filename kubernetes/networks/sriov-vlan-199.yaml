@@ -1,0 +1,18 @@
+apiVersion: "kubernetes.com/v1"
+kind: Network
+metadata:
+  name: sriov-vlan-199
+plugin: sriov
+args: '[
+       {
+                "if0": "eth5",
+                "vf": 0,
+                "vlan": 199,
+                "ipam": {
+                  "type": "host-local",
+                  "subnet": "10.6.0.0/16",
+                  "rangeStart": "10.6.0.10",
+                  "rangeEnd": "10.6.0.150"
+                }
+        }
+]'
