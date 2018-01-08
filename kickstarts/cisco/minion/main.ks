@@ -20,8 +20,9 @@ selinux --disabled
 # Reboot when complete
 reboot
 
-network --bootproto=dhcp --device=eth0 --activate
-network --bootproto=dhcp --device=eth1 --nodefroute
+network --bootproto=dhcp --device=eth2 --activate
+network --bootproto=static --device=eth7 --nodefroute
+network --bootproto=static --device=eth4 --nodefroute
 %include /tmp/pre-hostname
 
 # Temorarily disable firewall while builing
@@ -71,10 +72,16 @@ mlocate
 net-tools
 open-vm-tools
 bridge-utils
-cockpit
-cockpit-system
-cockpit-bridge
-cockpit-kubernetes
+edcop-cockpit
+edcop-cockpit-system
+edcop-cockpit-bridge
+edcop-cockpit-kubernetes
+edcop-cockpit-ws
+edcop-cockpit-dashboard
+edcop-cockpit-docker
+edcop-cockpit-machines
+edcop-cockpit-networkmanager
+edcop-cockpit-storaged
 kubeadm
 kubelet
 kubectl

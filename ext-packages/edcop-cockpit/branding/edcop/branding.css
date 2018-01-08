@@ -1,0 +1,26 @@
+body.login-pf {
+    background: url("bg-plain.jpg") no-repeat 50% 0;
+    background-size: auto;
+    background-color: #101010;
+}
+
+#badge {
+    width: 355px;
+    height: 148px;
+    background-image: url("logo.png");
+    background-size: contain;
+    background-repeat: no-repeat;
+}
+
+#brand {
+    font-size: 18pt;
+    text-transform: uppercase;
+}
+
+#brand:before {
+    content: "Expandable Defensive Cyber Ops Platform (EDCOP)";
+}
+
+#index-brand:before {
+    content: "Expandable DCO Platform";
+}
