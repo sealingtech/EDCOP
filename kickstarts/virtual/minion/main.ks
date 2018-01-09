@@ -127,6 +127,7 @@ echo "br-netfilter" > /etc/modprobe.d/br-netfilter
 echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
 echo "net.bridge.bridge-nf-call-iptables=1" > /etc/sysctl.d/k8s.conf
 echo "net.bridge.bridge-nf-call-ip6tables=1" >> /etc/sysctl.d/k8s.conf
+echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.d/k8s.conf
 sed -i --follow-symlinks 's/cgroup-driver=systemd/cgroup-driver=cgroupfs/g' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
 #
@@ -135,14 +136,6 @@ sed -i --follow-symlinks 's/cgroup-driver=systemd/cgroup-driver=cgroupfs/g' /etc
 #
 #mkdir -p /EDCOP/images
 #wget -P /EDCOP/images/ -r -np -nH --cut-dirs=50 -R "TRANS.TBL" -R "index.html" http://<insert-master-ip>:5415/deploy/EXTRAS/docker-images/
-
-
-#
-# Moved to an RPM install for the CNI files
-#
-#mkdir -p /opt/cni/bin
-#wget -P /opt/cni/bin -r -np -nH --cut-dirs=50 -R "TRANS.TBL" -R "index.html" http://<insert-master-ip>:5415/deploy/EXTRAS/multus-bins/
-#chmod 755 /opt/cni/bin/*
 
 mkdir /root/.kube/
 wget -P /root/.kube/ http://<insert-master-ip>:5415/deploy/EXTRAS/kubernetes/config
@@ -161,6 +154,12 @@ WorkingDirectory=/root
 
 [Install]
 WantedBy=multi-user.target
+EOF
+
+cat <<EOF | tee /etc/cockpit/cockpit.conf
+[WebService]
+AllowUnencrypted=true
+UrlRoot=/admin
 EOF
 
 systemctl enable minion-firstboot

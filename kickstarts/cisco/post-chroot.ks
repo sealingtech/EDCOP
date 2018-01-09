@@ -27,6 +27,7 @@ echo "br-netfilter" > /etc/modprobe.d/br-netfilter
 echo 1 > /proc/sys/net/bridge/bridge-nf-call-iptables
 echo "net.bridge.bridge-nf-call-iptables=1" > /etc/sysctl.d/k8s.conf
 echo "net.bridge.bridge-nf-call-ip6tables=1" >> /etc/sysctl.d/k8s.conf
+echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.d/k8s.conf
 sed -i --follow-symlinks 's/cgroup-driver=systemd/cgroup-driver=cgroupfs/g' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
 sed -i --follow-symlinks 's/\/usr\/share\/nginx\/html/\/EDCOP\/pxe/g' /etc/nginx/nginx.conf
@@ -66,6 +67,12 @@ WorkingDirectory=/root
 
 [Install]
 WantedBy=multi-user.target
+EOF
+
+cat <<EOF | tee /etc/cockpit/cockpit.conf
+[WebService]
+AllowUnencrypted=true
+UrlRoot=/admin
 EOF
 
 chmod +x /root/firstboot.sh
