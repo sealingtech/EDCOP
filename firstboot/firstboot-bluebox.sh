@@ -25,6 +25,11 @@ fi
 systemctl disable EDCOP-firstboot
 systemctl start cockpit
 
+# Increase VM max map count & disable swap
+sysctl -w vm.max_map_count=262144
+echo 'vm.max_map_count=262144' >> /etc/sysctl.conf
+swapoff -a
+
 #for i in $(find /EDCOP/images/ -type f -name *.gz);do gunzip -c $i | docker load; done
 
 ping_gw || (echo "Script can not start with no internet" && exit 1)
@@ -53,4 +58,18 @@ kubectl apply --token $token -f /EDCOP/kubernetes/networks/ovs-network.yaml
 kubectl apply --token $token -f /EDCOP/kubernetes/kubernetes-dashboard-http.yaml 
 
 #rm -rf /EDCOP/images
+
+#Install Helm
+wget https://kubernetes-helm.storage.googleapis.com/helm-v2.7.2-linux-386.tar.gz
+tar xf helm-v2.7.2-linux-386.tar.gz
+cd linux-386
+sudo cp helm /usr/local/bin/helm
+cd
+rm -rf helm-v2.7.2-linux-386.tar.gz linux-386/
+
+# Fixes the Tiller permissions
+kubectl create --token $token serviceaccount --namespace kube-system tiller
+kubectl create --token $token clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+kubectl patch --token $token deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+kubectl create --token $token clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
 
