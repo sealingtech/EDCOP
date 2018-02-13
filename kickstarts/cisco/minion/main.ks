@@ -168,6 +168,9 @@ systemctl enable minion-firstboot
 
 cat <<'EOF' | tee /root/minion-firstboot.sh
 #!/bin/bash
+sysctl -w vm.max_map_count=262144
+echo 'vm.max_map_count=262144' >> /etc/sysctl.conf
+swapoff -a
 
 kubeadm join --token <insert-token> <insert-master-ip>:6443 --discovery-token-unsafe-skip-ca-verification
 kubectl label nodes $(hostname | awk '{print tolower($0)}') nodetype=worker --overwrite
