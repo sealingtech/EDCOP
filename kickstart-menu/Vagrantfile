@@ -1,0 +1,13 @@
+$script = <<SCRIPT
+sudo yum -y install epel-release
+sudo yum -y install pyparted
+sudo yum -y install python-pip
+pip install --upgrade pip
+sudo pip install npyscreen
+sudo pip install pyparted
+SCRIPT
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "bento/centos-7.2"
+  config.vm.provision "shell", inline: $script
+end

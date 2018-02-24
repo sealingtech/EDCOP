@@ -1,0 +1,18 @@
+{
+  "builders": [
+    {
+      "type": "virtualbox-iso",
+      "boot_command": [
+        "<tab> text ks=http://{{ .HTTPIP }}:{{ .HTTPPort }}/ks.cfg<enter><wait>"
+      ],
+      "http_directory": "http",
+      "guest_os_type": "RedHat_64",
+      "iso_url": "/tmp/CentOS-7-x86_64-Minimal-1708.iso",
+      "iso_checksum_type": "none",
+      "ssh_username": "vagrant",
+      "ssh_password": "vagrant",
+      "ssh_wait_timeout": "10m",
+      "shutdown_command": "echo 'packer' | sudo -S shutdown -P now"
+    }
+  ]
+}
