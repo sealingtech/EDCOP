@@ -1,0 +1,8 @@
+npyscreen*
+ipaddress*
+*pyc
+.vimrc
+*.swp
+*/packer/packer
+*/packer/output*
+*/.vagrant/
