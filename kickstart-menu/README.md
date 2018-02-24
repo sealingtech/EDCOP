@@ -9,6 +9,9 @@ system hard drives, this should be ran as root.
 $ sudo ./menu.py
 ```
 
+Hitting CTRL-C while running the menu will quit and show all the variables
+assigned at that time. 
+
 For the best experience run inside of the vagrant image provided.
 
 ```
