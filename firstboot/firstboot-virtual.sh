@@ -21,7 +21,9 @@ fi
 
 }
 
-
+# Increase VM max map count & disable swap
+sysctl -w vm.max_map_count=262144
+echo 'vm.max_map_count=262144' >> /etc/sysctl.conf
 systemctl disable EDCOP-firstboot
 systemctl start cockpit
 
@@ -34,7 +36,7 @@ ping_gw || (echo "Script can not start with no internet" && exit 1)
 
 token=$(kubeadm token generate)
 
-kubeadm init --pod-network-cidr=10.244.0.0/16 --kubernetes-version 1.9.1 --token $token --token-ttl 0
+kubeadm init --pod-network-cidr=10.244.0.0/16 --kubernetes-version 1.10.0 --token $token --token-ttl 0
 
 sed -i --follow-symlinks "s/<insert-token>/$token/g" /EDCOP/pxe/deploy/ks/virtual/minion/main.ks
 
@@ -74,7 +76,7 @@ EOF
 
 kubectl apply --token $token -f /EDCOP/kubernetes/networks/calico-network.yaml
 
-# We aren't using Flannel Networking anymore. Calico is superior and policy-based
-#kubectl apply --token $token -f /EDCOP/kubernetes/networks/flannel-network.yaml
+# Implement kubevirt 0.4.0 for testing
+kubectl apply --token $token -f /EDCOP/kubernetes/kubevirt.yaml
 #rm -rf /EDCOP/images
 

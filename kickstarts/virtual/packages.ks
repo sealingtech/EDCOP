@@ -30,6 +30,9 @@ edcop-cockpit-docker
 edcop-cockpit-machines
 edcop-cockpit-networkmanager
 edcop-cockpit-storaged
+edcop-virtctl
+edcop-helm
+virt-viewer
 kubeadm
 kubelet
 kubectl

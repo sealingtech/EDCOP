@@ -1,14 +1,14 @@
-defaultbrandingdir = $(datadir)/cockpit/branding/default
+centosbrandingdir = $(datadir)/cockpit/branding/centos
 
-defaultbranding_DATA = \
-	src/branding/default/apple-touch-icon.png \
-	src/branding/default/bg-plain.jpg \
-	src/branding/default/branding.css \
-	src/branding/default/favicon.ico \
-	src/branding/default/logo.png \
+centosbranding_DATA = \
+	src/branding/centos/apple-touch-icon.png \
+	src/branding/centos/bg-plain.jpg \
+	src/branding/centos/branding.css \
+	src/branding/centos/favicon.ico \
+	src/branding/centos/logo.png \
 	$(NULL)
 
 EXTRA_DIST += \
-	$(defaultbranding_DATA) \
-	src/branding/default/logo.svg \
+	$(centosbranding_DATA) \
+	src/branding/centos/logo.svg \
 	$(NULL)

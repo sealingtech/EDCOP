@@ -31,6 +31,13 @@
 # define to build the dashboard
 %define build_dashboard 1
 
+# on RHEL 7.x we build subscriptions; superseded in RHEL 8 (and Fedora) by
+# external subscription-manager-cockpit
+%if 0%{?rhel} >= 7 && 0%{?rhel} < 8
+%define build_subscriptions 1
+%endif
+
+
 %define libssh_version 0.7.1
 %if 0%{?fedora} > 0 && 0%{?fedora} < 22
 %define libssh_version 0.6.0
@@ -42,7 +49,7 @@ Summary:        A user interface for Linux servers
 License:        LGPLv2+
 URL:            http://cockpit-project.org/
 
-Version:        158
+Version:        165
 %if %{defined wip}
 Release:        1.%{wip}%{?dist}
 Source0:        cockpit-%{version}.tar.gz
@@ -92,7 +99,11 @@ Requires: %{name}-system = %{version}-%{release}
 Recommends: %{name}-dashboard = %{version}-%{release}
 Recommends: %{name}-networkmanager = %{version}-%{release}
 Recommends: %{name}-storaged = %{version}-%{release}
-Recommends: sscg >= 2.0.4
+Recommends: sscg >= 2.3
+#EDCOP-PATCH
+%if 0%{?rhel} >= 8
+Recommends: subscription-manager-cockpit
+%endif
 %ifarch x86_64 %{arm} aarch64 ppc64le i686 s390x
 Recommends: %{name}-docker = %{version}-%{release}
 %endif
@@ -136,7 +147,13 @@ fi
 
 %build
 exec 2>&1
-%configure --disable-silent-rules --with-cockpit-user=cockpit-ws --with-selinux-config-type=etc_t %{?rhel:--without-storaged-iscsi-sessions} %{!?build_dashboard:--disable-ssh}
+%configure \
+    --disable-silent-rules \
+    --with-cockpit-user=cockpit-ws \
+    --with-selinux-config-type=etc_t \
+    %{?rhel:--without-storaged-iscsi-sessions} \
+    --with-appstream-data-packages='[ "appstream-data" ]' \
+    %{!?build_dashboard:--disable-ssh}
 make -j4 %{?extra_flags} all
 
 %check
@@ -146,7 +163,6 @@ make -j4 check
 %install
 make install DESTDIR=%{buildroot}
 make install-tests DESTDIR=%{buildroot}
-make install-integration-tests DESTDIR=%{buildroot}
 mkdir -p $RPM_BUILD_ROOT%{_sysconfdir}/pam.d
 install -p -m 644 tools/cockpit.pam $RPM_BUILD_ROOT%{_sysconfdir}/pam.d/cockpit
 rm -f %{buildroot}/%{_libdir}/cockpit/*.so
@@ -196,8 +212,12 @@ find %{buildroot}%{_datadir}/cockpit/kdump -type f >> kdump.list
 echo '%dir %{_datadir}/cockpit/sosreport' > sosreport.list
 find %{buildroot}%{_datadir}/cockpit/sosreport -type f >> sosreport.list
 
-echo '%dir %{_datadir}/cockpit/subscriptions' > subscriptions.list
-find %{buildroot}%{_datadir}/cockpit/subscriptions -type f >> subscriptions.list
+%if %{defined build_subscriptions}
+echo '%dir %{_datadir}/cockpit/subscriptions' >> system.list
+find %{buildroot}%{_datadir}/cockpit/subscriptions -type f >> system.list
+%else
+rm -rf %{buildroot}/%{_datadir}/cockpit/subscriptions
+%endif
 
 echo '%dir %{_datadir}/cockpit/storaged' > storaged.list
 find %{buildroot}%{_datadir}/cockpit/storaged -type f >> storaged.list
@@ -261,9 +281,11 @@ sed -i '/\.map\(\.gz\)\?$/d' *.list
 tar -C %{buildroot}/usr/src/debug -cf - . | tar -C %{buildroot} -xf -
 rm -rf %{buildroot}/usr/src/debug
 
-# On RHEL kdump, subscriptions, networkmanager, selinux, and sosreport are part of the system package
+# On RHEL kdump, networkmanager, selinux, and sosreport are part of the system package
 %if 0%{?rhel}
-cat kdump.list subscriptions.list sosreport.list networkmanager.list selinux.list >> system.list
+cat kdump.list sosreport.list networkmanager.list selinux.list >> system.list
+rm %{buildroot}/usr/share/metainfo/org.cockpit-project.cockpit-sosreport.metainfo.xml
+rm %{buildroot}/usr/share/pixmaps/cockpit-sosreport.png
 %endif
 
 %find_lang cockpit
@@ -305,6 +327,7 @@ system on behalf of the web based user interface.
 
 %package doc
 Summary: Cockpit deployment and developer guide
+BuildArch: noarch
 
 %description doc
 The Cockpit Deployment and Developer Guide shows sysadmins how to
@@ -318,30 +341,42 @@ embed or extend Cockpit.
 %{_docdir}/cockpit
 
 %package machines
+BuildArch: noarch
 Summary: Cockpit user interface for virtual machines
 Requires: %{name}-bridge >= 122
 Requires: %{name}-system >= 122
 Requires: libvirt
 Requires: libvirt-client
+# Optional components (for f24 we use soft deps)
+%if 0%{?fedora} >= 24 || 0%{?rhel} >= 8
+Recommends: virt-install
+%endif
 
 %description machines
 The Cockpit components for managing virtual machines.
+If "virt-install" is installed, you can also create new virtual machines.
 
 %files machines -f machines.list
 
-%package ovirt
+%package machines-ovirt
+BuildArch: noarch
 Summary: Cockpit user interface for oVirt virtual machines
 Requires: %{name}-bridge >= 122
 Requires: %{name}-system >= 122
 Requires: libvirt
 Requires: libvirt-client
+# package of old name "cockpit-ovirt" was shipped on fedora only
+%if 0%{?fedora} >= 25
+Obsoletes: %{name}-ovirt < 161
+%endif
 
-%description ovirt
+%description machines-ovirt
 The Cockpit components for managing oVirt virtual machines.
 
-%files ovirt -f ovirt.list
+%files machines-ovirt -f ovirt.list
 
 %package ostree
+BuildArch: noarch
 Summary: Cockpit user interface for rpm-ostree
 # Requires: Uses new translations functionality
 Requires: %{name}-bridge >= 124.x
@@ -406,11 +441,8 @@ Requires: device-mapper-multipath
 %else
 %if 0%{?rhel} == 7
 Requires: udisks2 >= 2.6
-# FIXME: udisks2 modules not yet available on 7.5
-%if "%{os_version_id}" != "7.5"
 Requires: udisks2-lvm2 >= 2.6
 Requires: udisks2-iscsi >= 2.6
-%endif
 Requires: device-mapper-multipath
 %else
 %if 0%{?fedora} >= 27 || 0%{?rhel} >= 8
@@ -427,7 +459,7 @@ Recommends: device-mapper-multipath
 %endif
 %endif
 %endif
-%if 0%{?fedora}
+%if 0%{?fedora} || 0%{?rhel} >= 8
 Requires: python3
 Requires: python3-dbus
 %else
@@ -462,12 +494,17 @@ Requires: NetworkManager
 Provides: %{name}-kdump = %{version}-%{release}
 Requires: kexec-tools
 # Optional components (only when soft deps are supported)
+%if 0%{?fedora} >= 24 || 0%{?rhel} >= 8
+Recommends: polkit
+%endif
 %if 0%{?rhel} >= 8
 Recommends: NetworkManager-team
 Recommends: setroubleshoot-server >= 3.3.3
 %endif
 Provides: %{name}-selinux = %{version}-%{release}
 Provides: %{name}-sosreport = %{version}-%{release}
+%endif
+%if %{defined build_subscriptions}
 Provides: %{name}-subscriptions = %{version}-%{release}
 Requires: subscription-manager >= 1.13
 %endif
@@ -493,34 +530,6 @@ These files are not required for running Cockpit.
 %config(noreplace) %{_sysconfdir}/cockpit/cockpit.conf
 %{_datadir}/cockpit/playground
 %{_prefix}/%{__lib}/cockpit-test-assets
-
-%package integration-tests
-Summary: Integration tests for Cockpit
-Requires: curl
-Requires: expect
-Requires: libvirt
-Requires: libvirt-client
-Requires: libvirt-daemon
-%if 0%{?rhel} >= 8 || 0%{?centos} >= 8 || 0%{?fedora} >= 27
-Requires: python2-libvirt
-%else
-Requires: libvirt-python
-%endif
-Requires: qemu-kvm
-Requires: npm
-Requires: python2
-Requires: rsync
-Requires: xz
-Requires: openssh-clients
-Requires: fontconfig
-
-%description integration-tests
-This package contains Cockpit's integration tests for running in VMs.
-These are not required for running Cockpit.
-
-%files integration-tests
-%{_datadir}/cockpit/test
-%{_datadir}/cockpit/containers
 
 %package ws
 Summary: Cockpit Web Service
@@ -600,19 +609,8 @@ The Cockpit component for creating diagnostic reports with the
 sosreport tool.
 
 %files sosreport -f sosreport.list
-
-%package subscriptions
-Summary: Cockpit subscription user interface package
-Requires: %{name}-bridge >= 122
-Requires: %{name}-shell >= 122
-Requires: subscription-manager >= 1.13
-BuildArch: noarch
-
-%description subscriptions
-This package contains the Cockpit user interface integration with local
-subscription management.
-
-%files subscriptions -f subscriptions.list
+/usr/share/metainfo/org.cockpit-project.cockpit-sosreport.metainfo.xml
+/usr/share/pixmaps/cockpit-sosreport.png
 
 %package networkmanager
 Summary: Cockpit user interface for networking, using NetworkManager
@@ -658,6 +656,7 @@ Summary: Cockpit user interface for Docker containers
 Requires: %{name}-bridge >= 122
 Requires: %{name}-shell >= 122
 Requires: /usr/bin/docker
+Requires: /usr/lib/systemd/system/docker.service
 Requires: python2
 
 %description docker
@@ -692,6 +691,7 @@ cluster. Installed on the Kubernetes master. This package is not yet complete.
 
 %package packagekit
 Summary: Cockpit user interface for packages
+BuildArch: noarch
 Requires: %{name}-bridge >= 138
 Requires: PackageKit
 
