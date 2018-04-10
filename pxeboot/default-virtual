@@ -33,12 +33,12 @@ MENU COLOR help        0  #c0ffffff #00000000 std      # Help text, if set via '
 label 1
 menu label ^1) Install Minion Server
 kernel deploy/images/pxeboot/vmlinuz
-append initrd=deploy/images/pxeboot/initrd.img inst.repo=http://<insert-master-ip>:5415/deploy inst.ks=http://<insert-master-ip>:5415/deploy/ks/virtual/minion/main.ks net.ifnames=0
+append initrd=deploy/images/pxeboot/initrd.img inst.repo=http://<insert-master-ip>:5415/deploy inst.ks=http://<insert-master-ip>:5415/deploy/ks/virtual/minion/main.ks
 
 label 2
 menu label ^2) Install Additional Master Server
 kernel deploy/images/pxeboot/vmlinuz
-append initrd=deploy/images/pxeboot/initrd.img inst.repo=http://<insert-master-ip>:5415/deploy inst.ks=http://<insert-master-ip>:5415/deploy/ks/bluebox/minion/main.ks net.ifnames=0
+append initrd=deploy/images/pxeboot/initrd.img inst.repo=http://<insert-master-ip>:5415/deploy inst.ks=http://<insert-master-ip>:5415/deploy/ks/bluebox/minion/main.ks
 
 label 3
 menu label ^3) Run Memtest86+

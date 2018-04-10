@@ -20,9 +20,9 @@ selinux --disabled
 # Reboot when complete
 reboot
 
-network --bootproto=dhcp --device=eth0 --activate
-network --bootproto=dhcp --device=eth1 --nodefroute
 %include /tmp/pre-hostname
+network --bootproto=dhcp --device=<insert-clusterif> --activate
+network --bootproto=dhcp --device=<insert-pxeif> --nodefroute
 
 # Temorarily disable firewall while builing
 #firewall --enabled --port=22:tcp,6443:tcp,2379:tcp,2380:tcp,10250:tcp,9090:tcp,30010:tcp
@@ -34,23 +34,9 @@ rootpw --plaintext open.local.box
 timezone America/New_York --isUtc
 # System bootloader configuration
 
-clearpart --all --initlabel --drives=<insert-drive>
+bootloader --append=" crashkernel=auto --location=mbr --boot-drive=<insert-drive> intel_iommu=on iommu=pt default_hugepagesz=1G hugepagesz=1G hugepages=4"
 
-bootloader --append=" crashkernel=auto net.ifnames=0 --location=mbr --boot-drive=<insert-drive> intel_iommu=on iommu=pt hugepages=2000"
-
-
-#autopart --type=lvm
-part /boot --size=200 --fstype=xfs --ondisk=<insert-drive> --asprimary
-part biosboot --size=1 --fstype="biosboot" --ondisk=<insert-drive>
-part pv.os --size=3000 --fstype=xfs --grow --ondisk=<insert-drive> --asprimary
-
-volgroup vg00 pv.os
-logvol /              --vgname=vg00 --name=root  --fstype=xfs --size 5500 --maxsize 21000 --grow
-logvol /var           --vgname=vg00 --name=var   --fstype=xfs --size 4000 --grow
-logvol /home          --vgname=vg00 --name=home  --fstype=xfs --size 1000 --grow
-logvol /var/log       --vgname=vg00 --name=log   --fstype=xfs --size 1500 --maxsize 25000 --grow
-logvol /var/log/audit --vgname=vg00 --name=audit --fstype=xfs --size 1500 --maxsize 25000 --grow
-logvol /tmp           --vgname=vg00 --name=tmp   --fstype=xfs --size 100 --maxsize 6000  --grow
+%include http://<insert-pxeip>:5415/deploy/ks/virtual/minion/storage.ks
 
 %packages --excludedocs
 @^minimal

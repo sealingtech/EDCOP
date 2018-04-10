@@ -13,9 +13,9 @@ while [[ $count -ne 0 ]] ; do
 done
 
 if [[ $rc -eq 0 ]] ; then                  # Make final determination.
-    echo `OK`
+    echo 'OK'
 else
-    echo `ERROR: Could not establish internet connection!`
+    echo 'ERROR: Could not establish internet connection!'
     exit 1
 fi
 
@@ -34,29 +34,45 @@ docker run -d -p 5000:5000 --restart=always --name edcop-registry registry:2
 # No need for external connectivity. Using offline images for cluster.
 ping_gw || (echo "Script can not start with no internet" && exit 1)
 
+#
+# Create token for cluster. Initialize Kubernetes Cluster with specific version.
+# Token is applied permenantly so that minions can always join cluster.
+#
 token=$(kubeadm token generate)
-
 kubeadm init --pod-network-cidr=10.244.0.0/16 --kubernetes-version 1.10.0 --token $token --token-ttl 0
 
+#
+# Apply the token and PXEboot IP address to the minion kickstart
+# 
 sed -i --follow-symlinks "s/<insert-token>/$token/g" /EDCOP/pxe/deploy/ks/virtual/minion/main.ks
-
 interface=$(route | grep default | awk '{print $8}')
-
 IP=$(ip addr show dev $interface | awk '$1 == "inet" { sub("/.*", "", $2); print $2 }')
-
 sed -i --follow-symlinks "s/<insert-master-ip>/$IP/g" /EDCOP/pxe/deploy/ks/virtual/minion/main.ks
 
+#
+# Copy configuration file to root's home directory. Add to minion deployment
+# This ensures that "kubectl" commands can be run by root on all systems
+#
 mkdir /root/.kube
 cp /etc/kubernetes/admin.conf /root/.kube/config
 cp /etc/kubernetes/admin.conf /EDCOP/pxe/deploy/EXTRAS/kubernetes/config
 chmod 644 /EDCOP/pxe/deploy/EXTRAS/kubernetes/config
 
+# 
+# Label the first node as 'master'.
+# Taint master node so containers can be run on the master
+# Add "nodetype=master" annotation to yaml files to schedule pods on the master server (e.g. ElasticSearch index)
+#
+kubectl label nodes $(hostname | awk '{print tolower($0)}') nodetype=master --overwrite
+kubectl taint nodes $(hostname | awk '{print tolower($0)}') node-role.kubernetes.io/master:NoSchedule-
+
+#
+# Create Multus/Calico network and Multus/OVS network.
+# This creates a Layer-3 mesh network between all nodes/containers
+#
 kubectl apply --token $token -f /EDCOP/kubernetes/networks/calico-multus-etcd.yaml
 kubectl apply --token $token -f /EDCOP/kubernetes/networks/crdnetwork.yaml
 kubectl apply --token $token -f /EDCOP/kubernetes/networks/ovs-network.yaml
-kubectl apply --token $token -f /EDCOP/kubernetes/kubernetes-dashboard-http.yaml 
-kubectl label nodes $(hostname | awk '{print tolower($0)}') nodetype=master --overwrite
-kubectl taint nodes $(hostname | awk '{print tolower($0)}') node-role.kubernetes.io/master:NoSchedule-
 
 # We need to wait for the calico configuration to finish so we can read the contents of the config file
 while [ ! -f /etc/cni/net.d/10-multus.conf ]
@@ -76,7 +92,24 @@ EOF
 
 kubectl apply --token $token -f /EDCOP/kubernetes/networks/calico-network.yaml
 
-# Implement kubevirt 0.4.0 for testing
-kubectl apply --token $token -f /EDCOP/kubernetes/kubevirt.yaml
-#rm -rf /EDCOP/images
+#
+# Create the Kubernetes Dashboard (already in nginx proxy as https://<master-ip>/dashboard)
+#
+kubectl apply --token $token -f /EDCOP/kubernetes/kubernetes-dashboard-http.yaml 
 
+#
+# Implement kubevirt 0.4.0 for testing
+#
+kubectl apply --token $token -f /EDCOP/kubernetes/kubevirt.yaml
+
+#
+# Initiate helm on cluster
+#
+kubectl create serviceaccount --namespace kube-system tiller
+kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+/usr/local/bin/helm init --service-account tiller
+
+#
+# Initial Persistent Volume based on the NFS server
+#
+kubectl apply --token $token -f /EDCOP/kubernetes/pv-nfs.yaml

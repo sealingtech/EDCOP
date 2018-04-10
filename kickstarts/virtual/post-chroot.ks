@@ -2,10 +2,6 @@
 
 source /EDCOP/vars
 
-systemctl enable openvswitch
-systemctl enable cockpit
-systemctl enable docker
-systemctl enable kubelet
 
 ##### CREATE CA & CERTIFICATES #####
 
@@ -32,8 +28,20 @@ sed -i --follow-symlinks 's/cgroup-driver=systemd/cgroup-driver=cgroupfs/g' /etc
 sed -i --follow-symlinks 's/\/usr\/share\/nginx\/html/\/EDCOP\/pxe/g' /etc/nginx/nginx.conf
 sed -i --follow-symlinks 's/80/5415/g' /etc/nginx/nginx.conf
 
+systemctl enable openvswitch
+systemctl enable cockpit
+systemctl enable docker
+systemctl enable kubelet
 systemctl enable nginx
 systemctl enable dnsmasq
+
+# MASTER ONLY
+# Enable services required for NFS Persistent Volume
+#
+systemctl enable rpcbind
+systemctl enable nfs-server
+systemctl enable nfs-lock
+systemctl enable nfs-idmap
 
 cat <<EOF | tee /etc/dnsmasq.d/pxeboot.conf
 interface=$PXEIF
@@ -43,7 +51,16 @@ bind-interfaces
 log-dhcp
 dhcp-range=$DHCPSTART,$DHCPEND,1h
 # first IP address is the one of the host
-dhcp-boot=pxelinux.0
+#dhcp-boot=pxelinux.0
+dhcp-vendorclass=BIOS,PXEClient:Arch:00000
+dhcp-vendorclass=UEFI32,PXEClient:Arch:00006
+dhcp-vendorclass=UEFI,PXEClient:Arch:00007
+dhcp-vendorclass=UEFI64,PXEClient:Arch:00009
+
+dhcp-boot=net:BIOS,pxelinux.0,,
+dhcp-boot=net:UEFI32,grubx64.efi,,
+dhcp-boot=net:UEFI,grubx64.efi,,
+dhcp-boot=net:UEFI64,grubx64.efi,,
 #pxe-service=x86PC,"Automatic Network Boot",pxelinux
 # Specify the IP address of another tftp server
 enable-tftp
@@ -78,10 +95,21 @@ chmod +x /root/firstboot.sh
 
 sed -i --follow-symlinks "s/<insert-master-ip>/$PXEIP/g" /EDCOP/pxe/pxelinux.cfg/default
 sed -i --follow-symlinks "s/<insert-drive>/$DRIVE/g" /EDCOP/pxe/deploy/ks/virtual/minion/main.ks
-
+sed -i --follow-symlinks "s/<insert-pxeif>/$PXEIF/g" /EDCOP/pxe/deploy/ks/virtual/minion/main.ks
+sed -i --follow-symlinks "s/<insert-pxeip>/$PXEIP/g" /EDCOP/pxe/deploy/ks/virtual/minion/main.ks
+sed -i --follow-symlinks "s/<insert-pxeip>/$PXEIP/g" /EDCOP/pxe/deploy/ks/virtual/minion/grub.cfg
+sed -i --follow-symlinks "s/<insert-clusterif>/$MINIONIF/g" /EDCOP/pxe/deploy/ks/virtual/minion/main.ks
 sed -i "/localhost/ s/$/ edcop-master.local $(hostname)/" /etc/hosts
 
+cp /EDCOP/pxe/deploy/ks/virtual/minion/grub.cfg /EDCOP/pxe/
+cp /EDCOP/pxe/deploy/EFI/BOOT/grubx64.efi /EDCOP/pxe/
+
+
 systemctl enable EDCOP-firstboot
+
+cat <<EOF | tee /etc/exports
+/EDCOP/shared    *(rw,sync,no_root_squash,no_all_squash)
+EOF
 
 %end
 
