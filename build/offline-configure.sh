@@ -20,8 +20,8 @@ umount $ISOLINUXDIR/EFI
 cp -rf /media/cdrom/EFI/* $ISOLINUXDIR/EFI/
 cp -f ./grub.cfg $ISOLINUXDIR/EFI/BOOT
 mkdir -p $ISOLINUXDIR/EXTRAS/{firstboot,nginx,kubernetes}
-cp ../pxeboot/default-* $ISOLINUXDIR/EXTRAS/
-cp ../firstboot/firstboot-* $ISOLINUXDIR/EXTRAS/firstboot
+cp ../pxeboot/default $ISOLINUXDIR/EXTRAS/
+cp ../firstboot/firstboot.sh $ISOLINUXDIR/EXTRAS/firstboot
 cp ../webserver/*.conf $ISOLINUXDIR/EXTRAS/nginx
 cp -r ../kubernetes/* $ISOLINUXDIR/EXTRAS/kubernetes/
 

@@ -44,10 +44,10 @@ kubeadm init --pod-network-cidr=10.244.0.0/16 --kubernetes-version 1.10.0 --toke
 #
 # Apply the token and PXEboot IP address to the minion kickstart
 # 
-sed -i --follow-symlinks "s/<insert-token>/$token/g" /EDCOP/pxe/deploy/ks/virtual/minion/main.ks
+sed -i --follow-symlinks "s/<insert-token>/$token/g" /EDCOP/pxe/deploy/ks/minion/main.ks
 interface=$(route | grep default | awk '{print $8}')
 IP=$(ip addr show dev $interface | awk '$1 == "inet" { sub("/.*", "", $2); print $2 }')
-sed -i --follow-symlinks "s/<insert-master-ip>/$IP/g" /EDCOP/pxe/deploy/ks/virtual/minion/main.ks
+sed -i --follow-symlinks "s/<insert-master-ip>/$IP/g" /EDCOP/pxe/deploy/ks/minion/main.ks
 
 #
 # Copy configuration file to root's home directory. Add to minion deployment
@@ -95,12 +95,12 @@ kubectl apply --token $token -f /EDCOP/kubernetes/networks/calico-network.yaml
 #
 # Create the Kubernetes Dashboard (already in nginx proxy as https://<master-ip>/dashboard)
 #
-kubectl apply --token $token -f /EDCOP/kubernetes/kubernetes-dashboard-http.yaml 
+kubectl apply --token $token -f /EDCOP/kubernetes/platform-apps/kubernetes-dashboard-http.yaml 
 
 #
 # Implement kubevirt 0.4.0 for testing
 #
-kubectl apply --token $token -f /EDCOP/kubernetes/kubevirt.yaml
+kubectl apply --token $token -f /EDCOP/kubernetes/platform-apps/kubevirt.yaml
 
 #
 # Initiate helm on cluster
@@ -112,4 +112,4 @@ kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admi
 #
 # Initial Persistent Volume based on the NFS server
 #
-kubectl apply --token $token -f /EDCOP/kubernetes/pv-nfs.yaml
+kubectl apply --token $token -f /EDCOP/kubernetes/storage/pv-nfs.yaml

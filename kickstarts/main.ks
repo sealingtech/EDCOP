@@ -1,4 +1,4 @@
-%include /run/install/repo/ks/virtual/pre-select.ks
+%include /run/install/repo/ks/pre-select.ks
 
 
 # System authorization information
@@ -19,7 +19,7 @@ selinux --disabled
 # Reboot when complete
 reboot
 
-%include /run/install/repo/ks/virtual/network.ks
+%include /run/install/repo/ks/network.ks
 
 # Root password
 rootpw --plaintext open.local.box
@@ -28,11 +28,11 @@ timezone America/New_York --isUtc
 # System bootloader configuration
 
 
-%include /run/install/repo/ks/virtual/storage.ks
+%include /run/install/repo/ks/storage.ks
 
-%include /run/install/repo/ks/virtual/packages.ks
+%include /run/install/repo/ks/packages.ks
 
-%include /run/install/repo/ks/virtual/post-nochroot.ks
+%include /run/install/repo/ks/post-nochroot.ks
 
-%include /run/install/repo/ks/virtual/post-chroot.ks
+%include /run/install/repo/ks/post-chroot.ks
 

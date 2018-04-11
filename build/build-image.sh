@@ -23,4 +23,4 @@ mkisofs -o EDCOP.iso \
 	-no-emul-boot $BUILDDIR/isolinux/
 implantisomd5 EDCOP.iso
 isohybrid -u EDCOP.iso
-mv EDCOP.iso $WORKINGDIR
+mv EDCOP.iso $WORKINGDIR/EDCOP-dev.iso

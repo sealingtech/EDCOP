@@ -163,7 +163,14 @@ select opt2 in `echo "$(list-harddrives)" | cut -d ' ' -f1` custom; do
         esac
 done
 
-echo "bootloader --append=\" crashkernel=auto --location=mbr --boot-drive=$DRIVE intel_iommu=on iommu=pt default_hugepagesz=1G hugepagesz=1G hugepages=4\"" >/tmp/pre-storage
+#
+# Enable intel_iommu and allocate 2048 hugepages (~4GB of hugepages)
+#
+# NOTE: Currently we are using 2MB hugepages in order to support multiple types of systems. This
+#       is required by DPDK. This can be changed to support 1GB hugepages if necessary, but the 
+#       benefits of this have not been fully explored.
+#
+echo "bootloader --append=\" crashkernel=auto --location=mbr --boot-drive=$DRIVE intel_iommu=on iommu=pt default_hugepagesz=2M hugepagesz=2M hugepages=2048\"" >/tmp/pre-storage
 
 if [ -z "$BULKDRIVE" ]
 then

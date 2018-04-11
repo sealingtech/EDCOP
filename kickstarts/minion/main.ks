@@ -34,9 +34,17 @@ rootpw --plaintext open.local.box
 timezone America/New_York --isUtc
 # System bootloader configuration
 
-bootloader --append=" crashkernel=auto --location=mbr --boot-drive=<insert-drive> intel_iommu=on iommu=pt default_hugepagesz=1G hugepagesz=1G hugepages=4"
+#
+# Enable intel_iommu and allocate 2048 hugepages (~4GB of hugepages)
+#
+# NOTE: Currently we are using 2MB hugepages in order to support multiple types of systems. This
+#       is required by DPDK. This can be changed to support 1GB hugepages if necessary, but the 
+#       benefits of this have not been fully explored.
+#
 
-%include http://<insert-pxeip>:5415/deploy/ks/virtual/minion/storage.ks
+bootloader --append=" crashkernel=auto --location=mbr --boot-drive=<insert-drive> intel_iommu=on iommu=pt default_hugepagesz=2M hugepagesz=2M hugepages=2048"
+
+%include http://<insert-pxeip>:5415/deploy/ks/minion/storage.ks
 
 %packages --excludedocs
 @^minimal

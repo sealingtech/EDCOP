@@ -3,7 +3,7 @@ kind: OfflineVirtualMachine
 metadata:
   name: testvm
 spec:
-  running: false
+  running: true
   selector:
     matchLabels:
       guest: testvm

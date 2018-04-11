@@ -94,14 +94,14 @@ EOF
 chmod +x /root/firstboot.sh
 
 sed -i --follow-symlinks "s/<insert-master-ip>/$PXEIP/g" /EDCOP/pxe/pxelinux.cfg/default
-sed -i --follow-symlinks "s/<insert-drive>/$DRIVE/g" /EDCOP/pxe/deploy/ks/virtual/minion/main.ks
-sed -i --follow-symlinks "s/<insert-pxeif>/$PXEIF/g" /EDCOP/pxe/deploy/ks/virtual/minion/main.ks
-sed -i --follow-symlinks "s/<insert-pxeip>/$PXEIP/g" /EDCOP/pxe/deploy/ks/virtual/minion/main.ks
-sed -i --follow-symlinks "s/<insert-pxeip>/$PXEIP/g" /EDCOP/pxe/deploy/ks/virtual/minion/grub.cfg
-sed -i --follow-symlinks "s/<insert-clusterif>/$MINIONIF/g" /EDCOP/pxe/deploy/ks/virtual/minion/main.ks
+sed -i --follow-symlinks "s/<insert-drive>/$DRIVE/g" /EDCOP/pxe/deploy/ks/minion/main.ks
+sed -i --follow-symlinks "s/<insert-pxeif>/$PXEIF/g" /EDCOP/pxe/deploy/ks/minion/main.ks
+sed -i --follow-symlinks "s/<insert-pxeip>/$PXEIP/g" /EDCOP/pxe/deploy/ks/minion/main.ks
+sed -i --follow-symlinks "s/<insert-pxeip>/$PXEIP/g" /EDCOP/pxe/deploy/ks/minion/grub.cfg
+sed -i --follow-symlinks "s/<insert-clusterif>/$MINIONIF/g" /EDCOP/pxe/deploy/ks/minion/main.ks
 sed -i "/localhost/ s/$/ edcop-master.local $(hostname)/" /etc/hosts
 
-cp /EDCOP/pxe/deploy/ks/virtual/minion/grub.cfg /EDCOP/pxe/
+cp /EDCOP/pxe/deploy/ks/minion/grub.cfg /EDCOP/pxe/
 cp /EDCOP/pxe/deploy/EFI/BOOT/grubx64.efi /EDCOP/pxe/
 
 
