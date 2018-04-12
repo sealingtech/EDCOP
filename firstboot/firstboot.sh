@@ -44,10 +44,25 @@ kubeadm init --pod-network-cidr=10.244.0.0/16 --kubernetes-version 1.10.0 --toke
 #
 # Apply the token and PXEboot IP address to the minion kickstart
 # 
-sed -i --follow-symlinks "s/<insert-token>/$token/g" /EDCOP/pxe/deploy/ks/minion/main.ks
+
 interface=$(route | grep default | awk '{print $8}')
 IP=$(ip addr show dev $interface | awk '$1 == "inet" { sub("/.*", "", $2); print $2 }')
+TESTHOSTNAME=(`hostname -A`)
+if [[ ${TESTHOSTNAME[0]} = "localhost.localdomain" ]]
+then
+HOSTNAME="edcop-master.local"
+else
+HOSTNAME=${TESTHOSTNAME[0]}
+fi
+
+sed -i --follow-symlinks "s/<insert-token>/$token/g" /EDCOP/pxe/deploy/ks/minion/main.ks
 sed -i --follow-symlinks "s/<insert-master-ip>/$IP/g" /EDCOP/pxe/deploy/ks/minion/main.ks
+
+sed -i --follow-symlinks "s/<insert-fqdn>/$HOSTNAME/g" /etc/cockpit/cockpit.conf
+sed -i --follow-symlinks "s/<insert-fqdn>/$HOSTNAME/g" /EDCOP/kubernetes/platform-apps/cockpit.yaml
+sed -i --follow-symlinks "s/<insert-master-ip>/$IP/g" /EDCOP/kubernetes/platform-apps/cockpit.yaml
+sed -i --follow-symlinks "s/<insert-fqdn>/$HOSTNAME/g" /EDCOP/kubernetes/platform-apps/kubernetes-dashboard-http.yaml
+sed -i --follow-symlinks "s/<insert-fqdn>/$HOSTNAME/g" /EDCOP/kubernetes/ingress/traefik-ingress-controller.yaml
 
 #
 # Copy configuration file to root's home directory. Add to minion deployment
@@ -93,11 +108,6 @@ EOF
 kubectl apply --token $token -f /EDCOP/kubernetes/networks/calico-network.yaml
 
 #
-# Create the Kubernetes Dashboard (already in nginx proxy as https://<master-ip>/dashboard)
-#
-kubectl apply --token $token -f /EDCOP/kubernetes/platform-apps/kubernetes-dashboard-http.yaml 
-
-#
 # Implement kubevirt 0.4.0 for testing
 #
 kubectl apply --token $token -f /EDCOP/kubernetes/platform-apps/kubevirt.yaml
@@ -110,6 +120,23 @@ kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admi
 /usr/local/bin/helm init --service-account tiller
 
 #
+# Apply Ingress Controller
+#
+kubectl create secret tls edcop-tls --key=/etc/pki/tls/private/server.key --cert=/etc/pki/tls/certs/server.crt -n kube-system
+kubectl apply --token $token -f /EDCOP/kubernetes/ingress/traefik-ingress-controller.yaml
+
+#
 # Initial Persistent Volume based on the NFS server
 #
 kubectl apply --token $token -f /EDCOP/kubernetes/storage/pv-nfs.yaml
+
+#
+# Create the Kubernetes Dashboard (already in nginx proxy as https://<master-ip>/dashboard)
+#
+kubectl apply --token $token -f /EDCOP/kubernetes/platform-apps/kubernetes-dashboard-http.yaml
+
+#
+# Apply ingress rules for cockpit
+#
+kubectl apply --token $token -f /EDCOP/kubernetes/platform-apps/cockpit.yaml
+

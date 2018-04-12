@@ -137,10 +137,9 @@ spec:
   ports:
   - port: 80
     targetPort: 9090
-    nodePort: 30010
   selector:
     k8s-app: kubernetes-dashboard
-  type: NodePort
+  type: ClusterIP
 
 ---
 
@@ -159,3 +158,25 @@ subjects:
 - kind: ServiceAccount
   name: kubernetes-dashboard
   namespace: kube-system
+---
+
+# ---------------- Ingress Rule (traefik)------------------ #
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: kubernetes-dashboard-ingress
+  namespace: kube-system
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefixStrip
+spec:
+  rules:
+  - host: <insert-fqdn>
+    http:
+      paths:
+      - path: /kubernetes-ui
+        backend:
+          serviceName: kubernetes-dashboard
+          servicePort: 80
+  tls:
+  - secretName: edcop-tls 

@@ -44,7 +44,7 @@ timezone America/New_York --isUtc
 
 bootloader --append=" crashkernel=auto --location=mbr --boot-drive=<insert-drive> intel_iommu=on iommu=pt default_hugepagesz=2M hugepagesz=2M hugepages=2048"
 
-%include http://<insert-pxeip>:5415/deploy/ks/minion/storage.ks
+%include http://<insert-master-ip>:5415/deploy/ks/minion/storage.ks
 
 %packages --excludedocs
 @^minimal

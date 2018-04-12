@@ -25,8 +25,8 @@ echo "net.bridge.bridge-nf-call-ip6tables=1" >> /etc/sysctl.d/k8s.conf
 echo "net.ipv4.ip_forward = 1" >> /etc/sysctl.d/k8s.conf
 sed -i --follow-symlinks 's/cgroup-driver=systemd/cgroup-driver=cgroupfs/g' /etc/systemd/system/kubelet.service.d/10-kubeadm.conf
 
-sed -i --follow-symlinks 's/\/usr\/share\/nginx\/html/\/EDCOP\/pxe/g' /etc/nginx/nginx.conf
-sed -i --follow-symlinks 's/80/5415/g' /etc/nginx/nginx.conf
+#sed -i --follow-symlinks 's/\/usr\/share\/nginx\/html/\/EDCOP\/pxe/g' /etc/nginx/nginx.conf
+#sed -i --follow-symlinks 's/80/5415/g' /etc/nginx/nginx.conf
 
 systemctl enable openvswitch
 systemctl enable cockpit
@@ -87,17 +87,19 @@ EOF
 
 cat <<EOF | tee /etc/cockpit/cockpit.conf
 [WebService]
+Origins = https://<insert-fqdn> https://
 AllowUnencrypted=true
-UrlRoot=/admin
+UrlRoot=/admin/
+LoginTitle=EDCOP
 EOF
 
 chmod +x /root/firstboot.sh
 
 sed -i --follow-symlinks "s/<insert-master-ip>/$PXEIP/g" /EDCOP/pxe/pxelinux.cfg/default
+sed -i --follow-symlinks "s/<insert-master-ip>/$PXEIP/g" /EDCOP/pxe/deploy/ks/minion/main.ks
+sed -i --follow-symlinks "s/<insert-master-ip>/$PXEIP/g" /EDCOP/pxe/deploy/ks/minion/grub.cfg
 sed -i --follow-symlinks "s/<insert-drive>/$DRIVE/g" /EDCOP/pxe/deploy/ks/minion/main.ks
 sed -i --follow-symlinks "s/<insert-pxeif>/$PXEIF/g" /EDCOP/pxe/deploy/ks/minion/main.ks
-sed -i --follow-symlinks "s/<insert-pxeip>/$PXEIP/g" /EDCOP/pxe/deploy/ks/minion/main.ks
-sed -i --follow-symlinks "s/<insert-pxeip>/$PXEIP/g" /EDCOP/pxe/deploy/ks/minion/grub.cfg
 sed -i --follow-symlinks "s/<insert-clusterif>/$MINIONIF/g" /EDCOP/pxe/deploy/ks/minion/main.ks
 sed -i "/localhost/ s/$/ edcop-master.local $(hostname)/" /etc/hosts
 

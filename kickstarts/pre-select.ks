@@ -30,6 +30,7 @@ IFARRAY=(${IFLIST[@]})
 
 HOSTNAME="master-$RANDOM"
 CLUSTERIF="${IFARRAY[1]}"
+MASTERIP="DHCP"
 MINIONIF="${CLUSTERIF}"
 PXEIF="${IFARRAY[2]}"
 PXEIP=10.50.50.10
@@ -37,11 +38,29 @@ PXENETMASK=255.255.255.0
 DHCPSTART=10.50.50.100
 DHCPEND=10.50.50.150
 
+function valid_ip()
+{
+    local  ip=$1
+    local  stat=1
+
+    if [[ $ip =~ ^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$ ]]; then
+        OIFS=$IFS
+        IFS='.'
+        ip=($ip)
+        IFS=$OIFS
+        [[ ${ip[0]} -le 255 && ${ip[1]} -le 255 \
+            && ${ip[2]} -le 255 && ${ip[3]} -le 255 ]]
+        stat=$?
+    fi
+    return $stat
+}
+
 printLogo
-echo "##### PXE NETWORK SETTINGS ####"
+echo "##### NETWORK SETTINGS ####"
 echo "Default Values are   :  "
 echo "HOSTNAME             : " $HOSTNAME
 echo "CLUSTER Interface    : " $CLUSTERIF
+echo "CLUSTER IP Address   : " $MASTERIP
 echo "PXE-Server Interface : " $PXEIF
 echo "PXE-Server IP Address: " $PXEIP
 echo "PXE-Server Netmask   : " $PXENETMASK
@@ -69,12 +88,23 @@ function getconfig() {
       MINIONIF=$IF1
    elif [[ $TEAM = "N" ]]
    then
-     read -p "Enter CLUSTER Interface      : " CLUSTERIF
+     read -p "Enter CLUSTER Interface     : " CLUSTERIF
      MINIONIF=$CLUSTERIF
    fi
-   read -p "Enter PXE-Server Interface      : " PXEIF
-   read -p "Enter PXE-Server IP Address         : " PXEIP
-   read -p "Enter PXE-Server Netmask         : " PXENETMASK
+   read -p "Would you like to set the CLUSTER interface for DHCP? (Y/N)" DHCP
+  if [[ $DHCP = "Y" ]]
+   then
+    MASTERIP="DHCP" 
+   elif [[ $DHCP = "N" ]]
+   then
+     read -p "Enter CLUSTER IP Address      : " MASTERIP
+     read -p "Enter CLUSTER Netmask         : " MASTERNETMASK
+     read -p "Enter CLUSTER Default Gateway : " MASTERGW
+     read -p "Enter CLUSTER DNS             : " MASTERDNS
+   fi
+   read -p "Enter PXE-Server Interface    : " PXEIF
+   read -p "Enter PXE-Server IP Address   : " PXEIP
+   read -p "Enter PXE-Server Netmask      : " PXENETMASK
    IFS=. read -r i1 i2 i3 i4 <<< $PXEIP
    IFS=. read -r m1 m2 m3 m4 <<< $PXENETMASK
    PXENET=$(printf "%d.%d.%d.%d\n" "$((i1 & m1))" "$((i2 & m2))" "$((i3 & m3))" "$((i4 & m4))")
@@ -84,13 +114,15 @@ function getconfig() {
    DHCPSTART=$(printf "%d.%d.%d.%d\n" "$((i1 & m1))" "$((i2 & m2))" "$((i3 & m3))" $STARTIP)
    DHCPEND=$(printf "%d.%d.%d.%d\n" "$((i1 & m1))" "$((i2 & m2))" "$((i3 & m3))" $ENDIP)
    echo "New Settings are: "
-   echo "HOSTNAME: " $HOSTNAME
+   echo "##### NETWORK SETTINGS ####"
+   echo "Default Values are   :  "
+   echo "HOSTNAME             : " $HOSTNAME
    echo "CLUSTER Interface    : " $CLUSTERIF
-   echo "PXE-Server Interface   : " $PXEIF
-   echo "PXE-Server IP Address  : " $PXEIP
-   echo "PXE-Server Netmask     : " $PXENETMASK
-   echo "PXE-Server Network     : " $PXENET
-   echo "DHCP Range             : " $DHCPSTART "-" $DHCPEND
+   echo "CLUSTER IP Address   : " $MASTERIP
+   echo "PXE-Server Interface : " $PXEIF
+   echo "PXE-Server IP Address: " $PXEIP
+   echo "PXE-Server Netmask   : " $PXENETMASK
+   echo "DHCP Range           : " $DHCPSTART "-" $DHCPEND
 
 }
 if [[ $ANSWER = "Y" ]]
@@ -115,8 +147,11 @@ then
 cat <<EOF | tee -a /tmp/pre-hostname
 network --bootproto=static --device=$CLUSTERIF --gateway=172.16.250.1 --ip=172.16.250.120 --nameserver=172.16.250.1 --netmask=255.255.255.0 --activate --teamslaves=$TEAMIFS --teamconfig='{"runner": {"name": "lacp","active": true,"fast_rate": true,"tx_hash": ["eth", "ipv4","ipv6"]},"link_watch": {"name": "ethtool"}}'  
 EOF
+elif [[ $MASTERIP = "DHCP" ]] || [[ $MASTERIP = "dhcp" ]]
+then
+echo "network --device=$CLUSTERIF --bootproto=dhcp --activate" >> /tmp/pre-hostname
 else
-echo "network --bootproto=dhcp --device=$CLUSTERIF --activate" >> /tmp/pre-hostname
+echo "network --device=$CLUSTERIF --bootproto=statis --ip=$MASTERIP --netmask=$MASTERNETMASK --gateway=$MASTERGW --nameserver=MASTERDNS --activate" >> /tmp/pre-hostname
 fi
 
 echo "network --bootproto=static --device=$PXEIF --ip=$PXEIP --netmask=$PXENETMASK --ipv6=auto" >> /tmp/pre-hostname
@@ -198,6 +233,10 @@ echo "logvol /tmp           --vgname=vg00 --name=tmp   --fstype=xfs --size 100 -
 echo "#!/bin/bash" >/tmp/vars
 echo "HOSTNAME=$HOSTNAME" >> /tmp/vars
 echo "CLUSTERIF=$CLUSTERIF" >> /tmp/vars
+echo "MASTERIP=$MASTERIP" >> /tmp/vars
+echo "MASTERNETMASK=$MASTERNETMASK" >> /tmp/vars
+echo "MASTERGW=$MASTERGW" >> /tmp/vars
+echo "MASTERDNS=$MASTERDNS" >> /tmp/vars
 echo "MINIONIF=$MINIONIF" >> /tmp/vars
 echo "PXEIF=$PXEIF" >> /tmp/vars
 echo "PXEIP=$PXEIP" >> /tmp/vars
