@@ -35,14 +35,6 @@ systemctl enable kubelet
 systemctl enable nginx
 systemctl enable dnsmasq
 
-# MASTER ONLY
-# Enable services required for NFS Persistent Volume
-#
-systemctl enable rpcbind
-systemctl enable nfs-server
-systemctl enable nfs-lock
-systemctl enable nfs-idmap
-
 cat <<EOF | tee /etc/dnsmasq.d/pxeboot.conf
 interface=$PXEIF
 # and don't bind to 0.0.0.0

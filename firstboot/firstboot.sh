@@ -128,7 +128,9 @@ kubectl apply --token $token -f /EDCOP/kubernetes/ingress/traefik-ingress-contro
 #
 # Initial Persistent Volume based on the NFS server
 #
-kubectl apply --token $token -f /EDCOP/kubernetes/storage/pv-nfs.yaml
+kubectl label node master-1 edcop.io/nfs-storage=true
+kubectl apply --token $token -f /EDCOP/kubernetes/storage/nfs-provisioner.yaml
+
 
 #
 # Create the Kubernetes Dashboard (already in nginx proxy as https://<master-ip>/dashboard)
