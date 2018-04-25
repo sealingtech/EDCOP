@@ -5,6 +5,8 @@
 import sys
 import npyscreen
 import classes
+import datetime
+from kickstart import *
 
 def str_ljust(_string):
     """Add padding to string."""
@@ -58,6 +60,7 @@ class MyTestApp(npyscreen.NPSAppManaged):
         """Register all forms for application."""
         self.begin_at = 25
         self.bootproto = ["static", "dhcp"]
+        self.teaming = ['yes', 'no']
         self.host = classes.Host()
         self.network_pxe = classes.PXENetwork()
         self.network_cluster = classes.ClusterNetwork()
@@ -71,8 +74,8 @@ class MyTestApp(npyscreen.NPSAppManaged):
         self.addForm("MAIN", MainForm)
         self.addForm("HOSTNAME", HostEditForm)
         self.addForm("NETWORKSELECT", NetworkSelectForm)
-        self.addForm("NETWORKPXE", NetForm1)
-        self.addForm("NETWORKCLUSTER", NetForm2)
+        self.addForm("NETWORKPXE", PXENetForm)
+        self.addForm("NETWORKCLUSTER", ClusterNetForm)
         self.addForm("NETWORKTRUST", NetworkEditForm,
                      network=self.network_trust, name="Trust (LAN)")
         self.addForm("NETWORKUNTRUST", NetworkEditForm,
@@ -190,6 +193,7 @@ class MainForm(npyscreen.ActionFormMinimal):
 
 
 class NetworkSelectForm(npyscreen.ActionFormMinimal):
+    # Class for the form that has options for PXE, cluster, passive, etc sub-menus
     """Form."""
 
     def create(self):
@@ -241,13 +245,18 @@ class HostEditForm(npyscreen.Popup):
 
 
 class NetForm(npyscreen.ActionFormV2):
-    """Form."""
+    # Base Network Form class.
 
     def create(self):
         """Create method is called by the Form constructor."""
         self.begin_at = self.parentApp.begin_at
         self.bootproto = self.add(npyscreen.TitleSelectOne,
                                   name=str_ljust("Bootproto"),
+                                  begin_entry_at=self.begin_at,
+                                  max_height=2,
+                                  scroll_exit=True)
+        self.teaming = self.add(npyscreen.TitleSelectOne,
+                                  name=str_ljust("NIC Teaming"),
                                   begin_entry_at=self.begin_at,
                                   max_height=2,
                                   scroll_exit=True)
@@ -278,13 +287,15 @@ class NetForm(npyscreen.ActionFormV2):
         self.gateway = self.add(npyscreen.TitleText,
                                 name=str_ljust("Gateway"),
                                 begin_entry_at=self.begin_at)
+
         self.dhcp_start.hidden = True
         self.dhcp_end.hidden = True
         self.dns1.hidden = True
         self.dns2.hidden = True
         self.gateway.hidden = True
         self.bootproto.values = ['static', 'dhcp']
-        self.bootproto.value = [0]
+        self.teaming.values = ['yes', 'no']
+        #self.bootproto.value = 0
         self.bootproto.value_changed_callback = update_bootproto_widget
 
     def on_cancel(self):
@@ -292,8 +303,8 @@ class NetForm(npyscreen.ActionFormV2):
         self.parentApp.switchFormPrevious()
 
 # pylint: disable=too-many-instance-attributes
-class NetForm1(NetForm):
-    """Form."""
+class PXENetForm(NetForm):
+    # PXE Network Form. Extends the NetForm class 
 
     # pylint: disable=invalid-name
     # pylint: disable=attribute-defined-outside-init
@@ -306,13 +317,14 @@ class NetForm1(NetForm):
         self.netmask.value = self.network.netmask
         self.dhcp_start.value = self.network.dhcp_start
         self.dhcp_end.value = self.network.dhcp_end
-        self.dhcp_start.hidden = False
-        self.dhcp_end.hidden = False
+        self.dhcp_start.hidden = True
+        self.dhcp_end.hidden = True
+        self.teaming.hidden = True
 
     def on_ok(self):
         """Save network information to object."""
         try:
-            self.netmask.bootproto = self.parentApp.bootproto[self.bootproto.value[0]]
+            self.network.bootproto = self.parentApp.bootproto[self.bootproto.value[0]]
             self.network.interface = self.parentApp.host.interfaces[self.interface.value[0]]
             self.network.ip_address = self.ipaddress.value
             self.network.netmask = self.netmask.value
@@ -324,8 +336,8 @@ class NetForm1(NetForm):
 
 
 
-class NetForm2(NetForm):
-    """Form."""
+class ClusterNetForm(NetForm):
+    # Cluster network form. Extends the NetForm class 
 
     # pylint: disable=invalid-name
     # pylint: disable=attribute-defined-outside-init
@@ -343,22 +355,25 @@ class NetForm2(NetForm):
         self.dns1.hidden = False
         self.dns2.hidden = False
         self.gateway.hidden = False
+        self.teaming.value = self.network.teaming
 
     def on_ok(self):
         """Save network information to object."""
         try:
-            self.netmask.bootproto = self.parentApp.bootproto[self.bootproto.value[0]]
+            self.network.bootproto = self.parentApp.bootproto[self.bootproto.value[0]]
             self.network.interface = self.parentApp.host.interfaces[self.interface.value[0]]
             self.network.ip_address = self.ipaddress.value
             self.network.netmask = self.netmask.value
             self.network.dns1 = self.dns1.value
             self.network.dns2 = self.dns2.value
             self.network.gateway = self.gateway.value
+            self.network.teaming = self.parentApp.teaming[self.teaming.value[0]]
             self.parentApp.switchFormPrevious()
         except IndexError:
             npyscreen.notify_confirm("Please select a valid interface", title="Error")
 
 class NetworkEditForm(npyscreen.ActionFormV2):
+    
     """Form."""
 
     def __init__(self, network, name, *args, **keywords):
@@ -425,23 +440,61 @@ class StorageEditForm(npyscreen.ActionFormV2):
 
     def on_ok(self):
         """Ok."""
+        
+        self.storage.mountpoint = self.mount.value
+        self.storage.disk = self.parentApp.host.harddrives[self.disk.value[0]]
         self.parentApp.setNextForm("STORAGESELECT")
+        
 
     def on_cancel(self):
         """Cancel."""
         self.parentApp.setNextForm("STORAGESELECT")
 
+class AtomicOSForm(StorageEditForm):
+    # Class for AtomicOS Form. Extends Storage Form
+    
+    def beforeEditing(self):
+        self.name = "EDCOP > Storage > Atomic OS"
+    
+    def on_ok(self):
+        pass
 
+def logData(KICKSTART_MENU):
+    # Dump various data to a log file for TSHOOT purposes
+    outFile = open("/tmp/dev.log", "w")
+    
+    dump = ""
+    now = datetime.datetime.now()
+    outFile.write(now.isoformat())
+    
+    dump += now.isoformat() + "\n\n"
+    dump += "=================================" + "\n\n"
+    dump += KICKSTART_MENU.host.name + "\n"
+    dump += str(KICKSTART_MENU.host.__dict__) + "\n"
+    dump += str(KICKSTART_MENU.network_pxe.__dict__) + "\n"
+    dump += str(KICKSTART_MENU.network_cluster.__dict__) + "\n"
+    dump += str(KICKSTART_MENU.network_trust.__dict__) + "\n"
+    dump += str(KICKSTART_MENU.network_untrust.__dict__) + "\n"
+    dump += str(KICKSTART_MENU.network_passive.__dict__) + "\n"
+    dump += str(KICKSTART_MENU.storage_os.__dict__) + "\n"
+    dump += str(KICKSTART_MENU.storage_fast.__dict__) + "\n"
+    dump += str(KICKSTART_MENU.storage_bulk.__dict__) + "\n"
+    dump += str(KICKSTART_MENU.storage_shared.__dict__) + "\n"
+
+    outFile.write(dump)
+    outFile.close()
+    
+      
 if __name__ == '__main__':
     try:
         KICKSTART_MENU = MyTestApp()
         KICKSTART_MENU.run()
+        
+        logData(KICKSTART_MENU)
+        
+        ksCreator(KICKSTART_MENU)
     except KeyboardInterrupt:
-        print KICKSTART_MENU.host.name
-        print KICKSTART_MENU.host.__dict__
-        print KICKSTART_MENU.network_pxe.__dict__
-        print KICKSTART_MENU.network_cluster.__dict__
-        print KICKSTART_MENU.network_trust.__dict__
-        print KICKSTART_MENU.network_untrust.__dict__
-        print KICKSTART_MENU.network_passive.__dict__
+        logData(KICKSTART_MENU)
+        
+        ksCreator(KICKSTART_MENU)
         sys.exit()

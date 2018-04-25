@@ -115,10 +115,18 @@ class PXENetwork(Network):
                                          **kargs)
         self.dhcp_start = dhcp_start
         self.dhcp_end = dhcp_end
+        self.bootproto = bootproto
+        
+        
+    def bootproto(self):
+        return self._bootproto
+    
+    def bootproto(selfself, value):
+        self._bootproto = value
 
 
 class ClusterNetwork(Network):
-    """ClusterNetwrok clas inherits Network."""
+    """ClusterNetwrok class inherits Network."""
 
     # pylint: disable=too-many-arguments
     def __init__(self,
@@ -128,6 +136,7 @@ class ClusterNetwork(Network):
                  ip_address='10.250.250.10',
                  netmask='255.255.255.0',
                  bootproto='static',
+                 teaming='yes',
                  **kargs):
         """Init."""
         super(ClusterNetwork, self).__init__(enabled=True,
@@ -138,6 +147,8 @@ class ClusterNetwork(Network):
         self.dns1 = dns1
         self.dns2 = dns2
         self.gateway = gateway
+        self.bootproto = bootproto
+        self.teaming = teaming
 
     @property
     def dns1(self):
@@ -150,12 +161,20 @@ class ClusterNetwork(Network):
 
     @property
     def dns2(self):
-        """Allow you to set DNS1."""
+        """Allow you to set DNS2."""
         return self._dns2
 
     @dns2.setter
     def dns2(self, value):
         self._dns2 = value
+        
+    def bootproto(self):
+        return self._bootproto
+    
+    def bootproto(selfself, value):
+        self._bootproto = value
+        
+    
 
 
 class Storage(object):
