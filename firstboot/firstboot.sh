@@ -142,3 +142,9 @@ kubectl apply --token $token -f /EDCOP/kubernetes/platform-apps/kubernetes-dashb
 #
 kubectl apply --token $token -f /EDCOP/kubernetes/platform-apps/cockpit.yaml
 
+#
+# Apply KubeApps Dashboard
+#
+kubectl apply --token $token -f /EDCOP/kubernetes/platform-apps/kubeapps.yaml
+
+
