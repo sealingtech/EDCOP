@@ -1,0 +1,2 @@
+npyscreen
+pyparted
