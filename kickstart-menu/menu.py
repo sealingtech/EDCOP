@@ -25,21 +25,21 @@ def update_enabled_widget(widget):
 
 def update_bootproto_widget(widget):
     """Update."""
-    if widget.parent.bootproto.value == [0]:
-        widget.parent.ipaddress.editable = True
-        widget.parent.ipaddress.hidden = False
-        widget.parent.ipaddress.color = 'DEFAULT'
-        widget.parent.netmask.editable = True
-        widget.parent.netmask.hidden = False
-        widget.parent.netmask.color = 'DEFAULT'
-        widget.parent.display()
-    else:
+    if widget.parent.bootproto.value == [1]:
         widget.parent.ipaddress.editable = False
         widget.parent.ipaddress.hidden = True
         widget.parent.ipaddress.color = 'NO_EDIT'
         widget.parent.netmask.editable = False
         widget.parent.netmask.hidden = True
         widget.parent.netmask.color = 'NO_EDIT'
+        widget.parent.display()
+    else:
+        widget.parent.ipaddress.editable = True
+        widget.parent.ipaddress.hidden = False
+        widget.parent.ipaddress.color = 'DEFAULT'
+        widget.parent.netmask.editable = True
+        widget.parent.netmask.hidden = False
+        widget.parent.netmask.color = 'DEFAULT'
         widget.parent.display()
 
 
@@ -71,6 +71,7 @@ class MyTestApp(npyscreen.NPSAppManaged):
         self.storage_fast = classes.Storage(mountpoint="/var/EDCOP/fast")
         self.storage_bulk = classes.Storage(mountpoint="/var/EDCOP/bulk")
         self.storage_shared = classes.Storage(mountpoint="/var/EDCOP/shared")
+        
         self.addForm("MAIN", MainForm)
         self.addForm("HOSTNAME", HostEditForm)
         self.addForm("NETWORKSELECT", NetworkSelectForm)
@@ -83,7 +84,7 @@ class MyTestApp(npyscreen.NPSAppManaged):
         self.addForm("NETWORKPASSIVE", NetworkEditForm,
                      network=self.network_passive, name="Passive")
         self.addForm("STORAGESELECT", StorageSelectForm)
-        self.addForm("STORAGEOS", StorageEditForm, storage=self.storage_os, name="EDCOPOS")
+        self.addForm("STORAGEOS", StorageEditForm, storage=self.storage_os, name="EDCOP OS")
         self.addForm("STORAGEFAST", StorageEditForm, storage=self.storage_fast, name="Fast")
         self.addForm("STORAGEBULK", StorageEditForm, storage=self.storage_bulk, name="Bulk")
         self.addForm("STORAGESHARED", StorageEditForm, storage=self.storage_shared, name="Shared")
@@ -156,7 +157,7 @@ class StorageMenuWidget(npyscreen.MultiLineAction):
     def __init__(self, *args, **keywords):
         """Init."""
         super(StorageMenuWidget, self).__init__(*args, **keywords)
-        self.menu_os = "EDCOP-OS"
+        self.menu_os = "EDCOP OS"
         self.menu_fast = "Local-Fast"
         self.menu_bulk = "Local-Bulk"
         self.menu_shared = "Shared"
@@ -361,7 +362,8 @@ class ClusterNetForm(NetForm):
         """Save network information to object."""
         try:
             self.network.bootproto = self.parentApp.bootproto[self.bootproto.value[0]]
-            self.network.interface = self.parentApp.host.interfaces[self.interface.value[0]]
+            # self.network.interface = self.parentApp.host.interfaces[self.interface.value[0]]
+            self.network.interface = self.interface.values
             self.network.ip_address = self.ipaddress.value
             self.network.netmask = self.netmask.value
             self.network.dns1 = self.dns1.value
@@ -451,7 +453,7 @@ class StorageEditForm(npyscreen.ActionFormV2):
         self.parentApp.setNextForm("STORAGESELECT")
 
 class EDCOPOSForm(StorageEditForm):
-    # Class for AtomicOS Form. Extends Storage Form
+    # Class for EDCOPOS Form. Extends Storage Form
     
     def beforeEditing(self):
         self.name = "EDCOP > Storage > EDCOP OS"
