@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source /EDCOP/vars
+
 function ping_gw() {
 echo "Checking for Network Connection..."
 ((count = 100))                            # Maximum number to try.
@@ -29,7 +31,7 @@ systemctl start cockpit
 
 #gunzip -c /EDCOP/images/docker-registry.tar.gz | docker load
 #for i in $(find /EDCOP/images/edcop-master/ -type f -name *.gz);do gunzip -c $i | docker load; done
-docker run -d -p 5000:5000 --restart=always --name edcop-registry registry:2
+#docker run -d -p 5000:5000 --restart=always --name edcop-registry registry:2
 
 # No need for external connectivity. Using offline images for cluster.
 ping_gw || (echo "Script can not start with no internet" && exit 1)
@@ -38,8 +40,10 @@ ping_gw || (echo "Script can not start with no internet" && exit 1)
 # Create token for cluster. Initialize Kubernetes Cluster with specific version.
 # Token is applied permenantly so that minions can always join cluster.
 #
+
 token=$(kubeadm token generate)
-kubeadm init --pod-network-cidr=10.244.0.0/16 --kubernetes-version 1.10.0 --token $token --token-ttl 0
+sleep 30
+kubeadm init --pod-network-cidr=10.244.0.0/16 --kubernetes-version 1.10.2 --token $token --token-ttl 0
 
 #
 # Apply the token and PXEboot IP address to the minion kickstart
@@ -47,23 +51,23 @@ kubeadm init --pod-network-cidr=10.244.0.0/16 --kubernetes-version 1.10.0 --toke
 
 interface=$(route | grep default | awk '{print $8}')
 IP=$(ip addr show dev $interface | awk '$1 == "inet" { sub("/.*", "", $2); print $2 }')
-TESTHOSTNAME=(`hostname -A`)
-if [[ ${TESTHOSTNAME[0]} = "localhost.localdomain" ]]
-then
-HOSTNAME="edcop-master.local"
-else
-HOSTNAME=${TESTHOSTNAME[0]}
-fi
+#TESTHOSTNAME=(`hostname -A`)
+#if [[ ${TESTHOSTNAME[0]} = "localhost.localdomain" ]]
+#then
+#HOSTNAME="edcop-master.local"
+#else
+#HOSTNAME=${TESTHOSTNAME[0]}
+#fi
 
 sed -i --follow-symlinks "s/<insert-token>/$token/g" /EDCOP/pxe/deploy/ks/minion/main.ks
-sed -i --follow-symlinks "s/<insert-master-ip>/$IP/g" /EDCOP/pxe/deploy/ks/minion/main.ks
+sed -i --follow-symlinks "s/<insert-master-ip>/$MASTERIP/g" /EDCOP/pxe/deploy/ks/minion/main.ks
 
 sed -i --follow-symlinks "s/<insert-fqdn>/$HOSTNAME/g" /etc/cockpit/cockpit.conf
 sed -i --follow-symlinks "s/<insert-fqdn>/$HOSTNAME/g" /EDCOP/kubernetes/platform-apps/cockpit.yaml
-sed -i --follow-symlinks "s/<insert-master-ip>/$IP/g" /EDCOP/kubernetes/platform-apps/cockpit.yaml
+sed -i --follow-symlinks "s/<insert-master-ip>/$MASTERIP/g" /EDCOP/kubernetes/platform-apps/cockpit.yaml
 sed -i --follow-symlinks "s/<insert-fqdn>/$HOSTNAME/g" /EDCOP/kubernetes/platform-apps/kubernetes-dashboard-http.yaml
 sed -i --follow-symlinks "s/<insert-fqdn>/$HOSTNAME/g" /EDCOP/kubernetes/ingress/traefik-ingress-controller.yaml
-
+sed -i --follow-symlinks "s/<insert-fqdn>/$HOSTNAME/g" /EDCOP/kubernetes/platform-apps/kubeapps.yaml
 #
 # Copy configuration file to root's home directory. Add to minion deployment
 # This ensures that "kubectl" commands can be run by root on all systems
@@ -128,7 +132,7 @@ kubectl apply --token $token -f /EDCOP/kubernetes/ingress/traefik-ingress-contro
 #
 # Initial Persistent Volume based on the NFS server
 #
-kubectl label node master-1 edcop.io/nfs-storage=true
+kubectl label node $(hostname | awk '{print tolower($0)}') edcop.io/nfs-storage=true
 kubectl apply --token $token -f /EDCOP/kubernetes/storage/nfs-provisioner.yaml
 
 

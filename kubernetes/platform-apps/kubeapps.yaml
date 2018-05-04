@@ -609,7 +609,7 @@ metadata:
   namespace: kubeapps
 spec:
   rules:
-  - host: physical.edcop.io 
+  - host: apps.<insert-fqdn>
     http:
       paths:
       - backend:
