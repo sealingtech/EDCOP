@@ -25,21 +25,21 @@ def update_enabled_widget(widget):
 
 def update_bootproto_widget(widget):
     """Update."""
-    if widget.parent.bootproto.value == [0]:
-        widget.parent.ipaddress.editable = True
-        widget.parent.ipaddress.hidden = False
-        widget.parent.ipaddress.color = 'DEFAULT'
-        widget.parent.netmask.editable = True
-        widget.parent.netmask.hidden = False
-        widget.parent.netmask.color = 'DEFAULT'
-        widget.parent.display()
-    else:
+    if widget.parent.bootproto.value == [1]:
         widget.parent.ipaddress.editable = False
         widget.parent.ipaddress.hidden = True
         widget.parent.ipaddress.color = 'NO_EDIT'
         widget.parent.netmask.editable = False
         widget.parent.netmask.hidden = True
         widget.parent.netmask.color = 'NO_EDIT'
+        widget.parent.display()
+    else:
+        widget.parent.ipaddress.editable = True
+        widget.parent.ipaddress.hidden = False
+        widget.parent.ipaddress.color = 'DEFAULT'
+        widget.parent.netmask.editable = True
+        widget.parent.netmask.hidden = False
+        widget.parent.netmask.color = 'DEFAULT'
         widget.parent.display()
 
 
@@ -71,6 +71,7 @@ class MyTestApp(npyscreen.NPSAppManaged):
         self.storage_fast = classes.Storage(mountpoint="/var/EDCOP/fast")
         self.storage_bulk = classes.Storage(mountpoint="/var/EDCOP/bulk")
         self.storage_shared = classes.Storage(mountpoint="/var/EDCOP/shared")
+        
         self.addForm("MAIN", MainForm)
         self.addForm("HOSTNAME", HostEditForm)
         self.addForm("NETWORKSELECT", NetworkSelectForm)
@@ -83,7 +84,7 @@ class MyTestApp(npyscreen.NPSAppManaged):
         self.addForm("NETWORKPASSIVE", NetworkEditForm,
                      network=self.network_passive, name="Passive")
         self.addForm("STORAGESELECT", StorageSelectForm)
-        self.addForm("STORAGEOS", StorageEditForm, storage=self.storage_os, name="EDCOPOS")
+        self.addForm("STORAGEOS", StorageEditForm, storage=self.storage_os, name="EDCOP OS")
         self.addForm("STORAGEFAST", StorageEditForm, storage=self.storage_fast, name="Fast")
         self.addForm("STORAGEBULK", StorageEditForm, storage=self.storage_bulk, name="Bulk")
         self.addForm("STORAGESHARED", StorageEditForm, storage=self.storage_shared, name="Shared")
@@ -156,7 +157,7 @@ class StorageMenuWidget(npyscreen.MultiLineAction):
     def __init__(self, *args, **keywords):
         """Init."""
         super(StorageMenuWidget, self).__init__(*args, **keywords)
-        self.menu_os = "EDCOP-OS"
+        self.menu_os = "EDCOP OS"
         self.menu_fast = "Local-Fast"
         self.menu_bulk = "Local-Bulk"
         self.menu_shared = "Shared"
@@ -219,7 +220,7 @@ class StorageSelectForm(npyscreen.ActionFormMinimal):
         self.parentApp.setNextForm("MAIN")
 
 
-class HostEditForm(npyscreen.Popup):
+class HostEditForm(npyscreen.ActionFormV2):
     """Edit Hostname."""
 
     def create(self):
@@ -242,6 +243,17 @@ class HostEditForm(npyscreen.Popup):
         """Call when the form is exited."""
         self.parentApp.host.name = self.hostname.value
         self.parentApp.switchFormPrevious()
+        
+    def on_ok(self):
+        if (self.hostname.value != ""):
+            try:
+                self.parentApp.host.name = self.hostname.value
+            except:
+                npyscreen.notify_confirm("Something went wrong. Please check your hostname", title="Error")
+        else:
+            npyscreen.notify_confirm("You must enter a hostname.", title="Error")
+            
+        
 
 
 class NetForm(npyscreen.ActionFormV2):
@@ -253,18 +265,18 @@ class NetForm(npyscreen.ActionFormV2):
         self.bootproto = self.add(npyscreen.TitleSelectOne,
                                   name=str_ljust("Bootproto"),
                                   begin_entry_at=self.begin_at,
-                                  max_height=2,
+                                  max_height=3,
                                   scroll_exit=True)
         self.teaming = self.add(npyscreen.TitleSelectOne,
                                   name=str_ljust("NIC Teaming"),
                                   begin_entry_at=self.begin_at,
-                                  max_height=2,
+                                  max_height=3,
                                   scroll_exit=True)
         self.interface = self.add(npyscreen.TitleMultiSelect,
                                   name=str_ljust("Interface"),
                                   begin_entry_at=self.begin_at,
                                   #max_height=self.parentApp.calculate_menu_height,
-                                  max_height=2,
+                                  max_height=8,
                                   scroll_exit=True)
         self.ipaddress = self.add(npyscreen.TitleText,
                                   name=str_ljust("IP Address"),
@@ -360,14 +372,18 @@ class ClusterNetForm(NetForm):
     def on_ok(self):
         """Save network information to object."""
         try:
+            interfaceList = []
+            for index in range(len(self.interface.value)):
+                interfaceList.append(self.parentApp.host.interfaces[self.interface.value[index]])
+            self.network.interface = interfaceList
             self.network.bootproto = self.parentApp.bootproto[self.bootproto.value[0]]
-            self.network.interface = self.parentApp.host.interfaces[self.interface.value[0]]
             self.network.ip_address = self.ipaddress.value
             self.network.netmask = self.netmask.value
             self.network.dns1 = self.dns1.value
             self.network.dns2 = self.dns2.value
             self.network.gateway = self.gateway.value
             self.network.teaming = self.parentApp.teaming[self.teaming.value[0]]
+                      
             self.parentApp.switchFormPrevious()
         except IndexError:
             npyscreen.notify_confirm("Please select a valid interface", title="Error")
@@ -440,18 +456,19 @@ class StorageEditForm(npyscreen.ActionFormV2):
 
     def on_ok(self):
         """Ok."""
-        
-        self.storage.mountpoint = self.mount.value
-        self.storage.disk = self.parentApp.host.harddrives[self.disk.value[0]]
-        self.parentApp.setNextForm("STORAGESELECT")
-        
+        try:
+            self.storage.mountpoint = self.mount.value
+            self.storage.disk = self.parentApp.host.harddrives[self.disk.value[0]]
+            self.parentApp.setNextForm("STORAGESELECT")
+        except IndexError:
+            npyscreen.notify_confirm("Please select a valid storage drive", title="Error")
 
     def on_cancel(self):
         """Cancel."""
         self.parentApp.setNextForm("STORAGESELECT")
 
 class EDCOPOSForm(StorageEditForm):
-    # Class for AtomicOS Form. Extends Storage Form
+    # Class for EDCOPOS Form. Extends Storage Form
     
     def beforeEditing(self):
         self.name = "EDCOP > Storage > EDCOP OS"
@@ -495,6 +512,5 @@ if __name__ == '__main__':
         ksCreator(KICKSTART_MENU)
     except KeyboardInterrupt:
         logData(KICKSTART_MENU)
-        
-        ksCreator(KICKSTART_MENU)
+
         sys.exit()
