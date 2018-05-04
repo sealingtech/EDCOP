@@ -220,7 +220,7 @@ class StorageSelectForm(npyscreen.ActionFormMinimal):
         self.parentApp.setNextForm("MAIN")
 
 
-class HostEditForm(npyscreen.Popup):
+class HostEditForm(npyscreen.ActionFormV2):
     """Edit Hostname."""
 
     def create(self):
@@ -243,6 +243,17 @@ class HostEditForm(npyscreen.Popup):
         """Call when the form is exited."""
         self.parentApp.host.name = self.hostname.value
         self.parentApp.switchFormPrevious()
+        
+    def on_ok(self):
+        if (self.hostname.value != ""):
+            try:
+                self.parentApp.host.name = self.hostname.value
+            except:
+                npyscreen.notify_confirm("Something went wrong. Please check your hostname", title="Error")
+        else:
+            npyscreen.notify_confirm("You must enter a hostname.", title="Error")
+            
+        
 
 
 class NetForm(npyscreen.ActionFormV2):
@@ -254,18 +265,18 @@ class NetForm(npyscreen.ActionFormV2):
         self.bootproto = self.add(npyscreen.TitleSelectOne,
                                   name=str_ljust("Bootproto"),
                                   begin_entry_at=self.begin_at,
-                                  max_height=2,
+                                  max_height=3,
                                   scroll_exit=True)
         self.teaming = self.add(npyscreen.TitleSelectOne,
                                   name=str_ljust("NIC Teaming"),
                                   begin_entry_at=self.begin_at,
-                                  max_height=2,
+                                  max_height=3,
                                   scroll_exit=True)
         self.interface = self.add(npyscreen.TitleMultiSelect,
                                   name=str_ljust("Interface"),
                                   begin_entry_at=self.begin_at,
                                   #max_height=self.parentApp.calculate_menu_height,
-                                  max_height=2,
+                                  max_height=8,
                                   scroll_exit=True)
         self.ipaddress = self.add(npyscreen.TitleText,
                                   name=str_ljust("IP Address"),
@@ -361,15 +372,18 @@ class ClusterNetForm(NetForm):
     def on_ok(self):
         """Save network information to object."""
         try:
+            interfaceList = []
+            for index in range(len(self.interface.value)):
+                interfaceList.append(self.parentApp.host.interfaces[self.interface.value[index]])
+            self.network.interface = interfaceList
             self.network.bootproto = self.parentApp.bootproto[self.bootproto.value[0]]
-            # self.network.interface = self.parentApp.host.interfaces[self.interface.value[0]]
-            self.network.interface = self.interface.values
             self.network.ip_address = self.ipaddress.value
             self.network.netmask = self.netmask.value
             self.network.dns1 = self.dns1.value
             self.network.dns2 = self.dns2.value
             self.network.gateway = self.gateway.value
             self.network.teaming = self.parentApp.teaming[self.teaming.value[0]]
+                      
             self.parentApp.switchFormPrevious()
         except IndexError:
             npyscreen.notify_confirm("Please select a valid interface", title="Error")
@@ -442,11 +456,12 @@ class StorageEditForm(npyscreen.ActionFormV2):
 
     def on_ok(self):
         """Ok."""
-        
-        self.storage.mountpoint = self.mount.value
-        self.storage.disk = self.parentApp.host.harddrives[self.disk.value[0]]
-        self.parentApp.setNextForm("STORAGESELECT")
-        
+        try:
+            self.storage.mountpoint = self.mount.value
+            self.storage.disk = self.parentApp.host.harddrives[self.disk.value[0]]
+            self.parentApp.setNextForm("STORAGESELECT")
+        except IndexError:
+            npyscreen.notify_confirm("Please select a valid storage drive", title="Error")
 
     def on_cancel(self):
         """Cancel."""
@@ -497,6 +512,5 @@ if __name__ == '__main__':
         ksCreator(KICKSTART_MENU)
     except KeyboardInterrupt:
         logData(KICKSTART_MENU)
-        
-        ksCreator(KICKSTART_MENU)
+
         sys.exit()

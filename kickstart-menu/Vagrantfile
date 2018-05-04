@@ -6,11 +6,31 @@ pip install --upgrade pip
 sudo pip install jinja2
 sudo pip install npyscreen
 sudo pip install pyparted
+mkdir /tmp/ks
 SCRIPT
+
+fastDrive = "fast.vmdk"
+localDrive = "local.vmdk"
+sharedDrive = "shared.vmdk"
 
 Vagrant.configure("2") do |config|
   config.vm.box = "bento/centos-7.2"
   config.vm.provision "shell", inline: $script
   config.vm.network "private_network", ip: "192.168.1.4"
- 
+  config.vm.network "private_network", ip: "192.168.1.7"
+  config.vm.define "EDCOP_KS_DEV"
+  
+  config.vm.provider "virtualbox" do |v|
+  	v.name = "EDCOP_KS_DEV"
+  	
+    v.customize [ "createmedium", "disk", "--filename", fastDrive, "--format", "vmdk", "--size", 1024 * 1 ]
+    v.customize [ "storageattach", "EDCOP_KS_DEV" , "--storagectl", "SATA Controller", "--port", "1", "--device", "0", "--type", "hdd", "--medium", fastDrive]
+    
+    v.customize [ "createmedium", "disk", "--filename", localDrive, "--format", "vmdk", "--size", 1024 * 1 ]
+    v.customize [ "storageattach", "EDCOP_KS_DEV" , "--storagectl", "SATA Controller", "--port", "2", "--device", "0", "--type", "hdd", "--medium", localDrive]
+    
+    v.customize [ "createmedium", "disk", "--filename", sharedDrive, "--format", "vmdk", "--size", 1024 * 1 ]
+    v.customize [ "storageattach", "EDCOP_KS_DEV" , "--storagectl", "SATA Controller", "--port", "3", "--device", "0", "--type", "hdd", "--medium", sharedDrive]
+  end
+  
 end

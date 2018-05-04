@@ -9,11 +9,11 @@ part pv.os --size=13000 --fstype=xfs --grow --asprimary --ondisk {{ data.storage
 volgroup vg00 pv.os"logvol /              --vgname=vg00 --name=root  --fstype=xfs --size 10000 --maxsize 50000 --grow
 logvol /home          --vgname=vg00 --name=home  --fstype=xfs --size 1000 --maxsize 10000 --grow
 logvol /var/log       --vgname=vg00 --name=log   --fstype=xfs --size 1500 --maxsize 25000 --grow
-logvol /tmp           --vgname=vg00 --name=tmp   --fstype=xfs --size 500 --maxsize 6000  --growpart pv.bulk --size=1000 --fstype=xfs --grow --asprimary --ondisk {$BULKDRIVE}
+logvol /tmp           --vgname=vg00 --name=tmp   --fstype=xfs --size 500 --maxsize 6000  --growpart pv.bulk --size=1000 --fstype=xfs --grow --asprimary --ondisk {{ data.storage_bulk._disk[0] }}
 volgroup vg01 pv.bulk"
-logvol /EDCOP/bulk    --vgname=vg01 --name=bulk  --fstype=xfs --size 1000 --growpart pv.fast --size=1000 --fstype=xfs --grow --asprimary --ondisk {$FASTDRIVE}
+logvol /EDCOP/bulk    --vgname=vg01 --name=bulk  --fstype=xfs --size 1000 --growpart pv.fast --size=1000 --fstype=xfs --grow --asprimary --ondisk {{ data.storage_fast._disk[0] }}
 volgroup vg02 pv.fast"
-logvol /EDCOP/fast    --vgname=vg02 --name=bulk  --fstype=xfs --size 1000 --growpart pv.share --size=1000 --fstype=xfs --grow --asprimary --ondisk {$SHAREDRIVE}
+logvol /EDCOP/fast    --vgname=vg02 --name=bulk  --fstype=xfs --size 1000 --growpart pv.share --size=1000 --fstype=xfs --grow --asprimary --ondisk {{ data.storage_shared._disk[0] }}
 volgroup vg03 pv.share"
 logvol /EDCOP/shared    --vgname=vg03 --name=bulk  --fstype=xfs --size 1000 --grow 
 
