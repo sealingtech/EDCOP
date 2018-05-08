@@ -977,11 +977,11 @@ spec:
       containers:
       - args:
         - --logtostderr
-        - --repo-sync-image=kubeapps/chart-repo:v0.6.0
+        - --repo-sync-image=kubeapps/chart-repo:v0.7.0
         command:
         - /apprepository-controller
         env: []
-        image: kubeapps/apprepository-controller:v0.6.0
+        image: kubeapps/apprepository-controller:v0.7.0
         name: controller
         ports: []
         stdin: false
@@ -1031,7 +1031,7 @@ spec:
             secretKeyRef:
               key: mongodb-root-password
               name: mongodb
-        image: kubeapps/chartsvc:v0.6.0
+        image: kubeapps/chartsvc:v0.7.0
         name: chartsvc
         ports:
         - containerPort: 8080
@@ -1125,7 +1125,7 @@ spec:
       containers:
       - args: []
         env: []
-        image: gcr.io/edcop-public/dashboard:latest
+        image: gcr.io/edcop-public/edcop-dashboard:latest
         livenessProbe:
           httpGet:
             path: /
@@ -1154,6 +1154,8 @@ spec:
       - configMap:
           name: kubeapps-dashboard-ui-vhost-425de41
         name: vhost
+      nodeSelector:
+        nodetype: master
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
@@ -1187,7 +1189,7 @@ spec:
         - --port=8080
         - --disable-filter=true
         env: []
-        image: lachlanevenson/k8s-kubectl:v1.8.6
+        image: lachlanevenson/k8s-kubectl:v1.10.2
         name: proxy
         ports:
         - containerPort: 8080
@@ -1327,7 +1329,7 @@ spec:
         env:
         - name: TMPDIR
           value: /helm
-        image: bitnami/helm-crd-controller:v0.2.1
+        image: bitnami/helm-crd-controller:v0.3.0
         name: controller
         ports: []
         securityContext:

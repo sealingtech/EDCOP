@@ -165,12 +165,12 @@ sysctl -w vm.max_map_count=262144
 echo 'vm.max_map_count=262144' >> /etc/sysctl.conf
 
 kubeadm join --token <insert-token> <insert-master-ip>:6443 --discovery-token-unsafe-skip-ca-verification
-kubectl label nodes $(hostname | awk '{print tolower($0)}') nodetype=worker --overwrite
 
 systemctl start cockpit
 systemctl disable minion-firstboot
 
 ovs-vsctl --no-wait set Open_vSwitch . other_config:dpdk-init=true
+kubectl label nodes $(hostname | awk '{print tolower($0)}') nodetype=worker --overwrite
 
 rm -f /root/minion-firstboot.sh
 rm -f /etc/systemd/system/minion-firstboot.service

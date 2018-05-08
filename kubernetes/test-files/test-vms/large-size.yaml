@@ -1,0 +1,15 @@
+apiVersion: kubevirt.io/v1alpha1
+kind: VirtualMachinePreset
+metadata:
+  name: large
+spec:
+  selector:
+    matchLabels:
+      kubevirt.io/size: large
+  domain:
+    resources:
+      requests:
+        memory: 16G
+                cpu:
+                  cores: 6
+    devices: {}

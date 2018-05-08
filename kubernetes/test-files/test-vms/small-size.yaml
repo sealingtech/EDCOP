@@ -1,0 +1,13 @@
+apiVersion: kubevirt.io/v1alpha1
+kind: VirtualMachinePreset
+metadata:
+  name: small
+spec:
+  selector:
+    matchLabels:
+      kubevirt.io/size: small
+  domain:
+    resources:
+      requests:
+        memory: 256M
+    devices: {}
