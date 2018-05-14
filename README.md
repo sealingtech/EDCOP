@@ -6,10 +6,12 @@ NOTE:  This is still in the prototype phase.  While the tools work, there are so
 EDCOP is a bootable ISO based on Centos 7.  EDCOP will install all the necessary components required for deploying EDCOP-Tools (available seperately here: https://github.com/sealingtech/EDCOP-TOOLS).
 
 
-
 ## Overview
 ---
 The EDCOP is a platform to deploy virtual network defense tools on.
+
+## Installation
+Deploying EDCOP first involves booting the ISO and running the install setup on the master node.  Once this is complete, minions will be automatically built over the network through PXE services.
 
 ## Setup Build Environment
 This procedure assumes that you have already installed a CentOS 7.4 Minimal installation and have at least 10GB of space available.
