@@ -7,14 +7,14 @@ rm -rf $BUILDDIR
 mkdir -p $ISOLINUXDIR
 cp /media/cdrom/repodata/*comps.xml $BUILDDIR/comps.xml
 mkdir -p $ISOLINUXDIR/{EXTRAS,images,isolinux,ks,LiveOS,Packages,repodata,EFI}
-cp /media/cdrom/TRANS.TBL $ISOLINUXDIR
+#cp /media/cdrom/TRANS.TBL $ISOLINUXDIR
 cp /media/cdrom/LiveOS/squashfs.img $ISOLINUXDIR/LiveOS
 cp /media/cdrom/isolinux/* $ISOLINUXDIR/isolinux
 cp -r /media/cdrom/images/* $ISOLINUXDIR/images
-cp /media/cdrom/.discinfo $ISOLINUXDIR/
+#cp /media/cdrom/.discinfo $ISOLINUXDIR/
 cp -r ../kickstarts/* $ISOLINUXDIR/ks
 cp -f ./isolinux.cfg $ISOLINUXDIR/isolinux
-mount -o loop $ISOLINUXDIR/images/efiboot.img $ISOLINUXDIR/EFI
+mount $ISOLINUXDIR/images/efiboot.img $ISOLINUXDIR/EFI
 cp -f ./grub.cfg $ISOLINUXDIR/EFI/EFI/BOOT
 umount $ISOLINUXDIR/EFI
 cp -rf /media/cdrom/EFI/* $ISOLINUXDIR/EFI/
