@@ -54,6 +54,8 @@ After booting from the install disk, you'll be asked a series of questions to se
 
 ### Network Settings:
 
+The installer will make a feeble attempt to guess what your network settings should be. This is normally incorrect and should probably be answered _**N**_ and entered manually. 
+
 + **Enter hostname (entire FQDN):**
 
    EDCOP requires a FQDN and corresponding DNS entry (e.g. "edcop.example.com" or "dev.edcop.io"). After installation, you must access the Admin panel with the FQDN (not IP address).
