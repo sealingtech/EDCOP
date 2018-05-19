@@ -5,6 +5,9 @@ The Expandable Defensive Cyber Operations Platform
 
 EDCOP is a bootable ISO based on Centos 7.  EDCOP will install all the necessary components required for deploying EDCOP-Tools from a repository. (Source for the open-source tools available seperately here: https://github.com/sealingtech/EDCOP-TOOLS).
 
+Checkout this quick feature demo of EDCOP:
+
+![EDCOP Feature Demo](https://github.com/sealingtech/EDCOP/raw/master/docs/images/youtube_video.png)
 
 ## Overview
 ---
