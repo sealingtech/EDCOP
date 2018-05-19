@@ -7,7 +7,7 @@ EDCOP is a bootable ISO based on Centos 7.  EDCOP will install all the necessary
 
 Checkout this quick feature demo of EDCOP:
 
-![EDCOP Feature Demo](https://github.com/sealingtech/EDCOP/raw/master/docs/images/youtube_video.png)
+[![EDCOP Feature Demo](https://github.com/sealingtech/EDCOP/raw/master/docs/images/youtube_video.png)](https://www.youtube.com/watch?v=k6DARQP9CXo)
 
 ## Overview
 ---
