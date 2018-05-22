@@ -11,7 +11,7 @@ Checkout this quick feature demo of EDCOP:
 
 ## Overview
 ---
-The EDCOP is a scalable cluster to deploy virtual network defense tools on. It is designed to install a kubernetes cluster that is purpose-built to deploy and manager tools for Defensive Cyber Operations (DCO), although it could be used for any NFVi or standared application. 
+The EDCOP is a scalable cluster to deploy virtual network defense tools on. It is designed to install a kubernetes cluster that is purpose-built to deploy and manage tools for Defensive Cyber Operations (DCO), although it could be used for any NFVi or standard application. 
 
 ![EDCOP Architecture](https://github.com/sealingtech/EDCOP/raw/master/docs/images/stacked_platform_concept.png)
 
