@@ -15,6 +15,8 @@ The EDCOP is a scalable cluster to deploy virtual network defense tools on. It i
 
 ![EDCOP Architecture](https://github.com/sealingtech/EDCOP/raw/master/docs/images/stacked_platform_concept.png)
 
+EDCOP is designed to be a platform to deploy any CND tools.  Once deployed you will have Bro, Suricata, ELK stack and other tools made available to you.  There is a seperate Github Repository available here: [EDCOP-TOOLS](https://github.com/sealingtech/EDCOP-TOOLS)
+
 ## Quickstart
 ---
 For the more adventurous, you can [download the latest release installation ISO](https://github.com/sealingtech/EDCOP/releases/download/0.9.1/EDCOP-0.9.1.iso), and give it a try (we'd love the feedback).
