@@ -3,7 +3,13 @@ The Expandable Defensive Cyber Operations Platform
 ---
 **NOTE:**  This is still in the prototype phase.  While the tools work, there are some growing pains as well as known and possibly unknown defects.  
 
-EDCOP is a bootable ISO based on Centos 7.  EDCOP will install all the necessary components required for deploying EDCOP-Tools from a repository. Source for the open-source tools available seperately here: https://github.com/sealingtech/EDCOP-TOOLS).
+EDCOP is a bootable ISO based on Centos 7.  EDCOP will install all the necessary components required for deploying EDCOP-Tools from a repository. Current Tools that are supported natively (linked to associated GitHub repos):
++ [Suricata IDS/IPS](https://github.com/sealingtech/EDCOP-SURICATA)
++ [Bro NSM/IDS](https://github.com/sealingtech/EDCOP-BRO)
++ [Moloch Full-PCAP](https://github.com/sealingtech/EDCOP-MOLOCH)
++ [ElasticSearch](https://github.com/sealingtech/EDCOP-ELASTICSEARCH)
++ [ElasticSearch XPACK](https://github.com/sealingtech/EDCOP-XPACK)
++ [Kibana](https://github.com/sealingtech/EDCOP-KIBANA)
 
 Checkout this quick feature demo of EDCOP:
 
