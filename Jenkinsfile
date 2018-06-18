@@ -26,7 +26,7 @@ node {
     sh "make iso" 
   }
 
-  stage('Move ISO to /home/jenkins') {
+  stage('Move ISO to /tmp of the Jenkins CONTAINER') {
     sh "mv EDCOP-dev.iso /tmp/" 
   }
 }
