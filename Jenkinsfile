@@ -27,6 +27,6 @@ node {
   }
 
   stage('Move ISO to /home/jenkins') {
-    sh "mv EDCOP-dev.iso /home/jenkins/" 
+    sh "mv EDCOP-dev.iso /tmp/" 
   }
 }
