@@ -1,7 +1,7 @@
 #!/bin/bash
 BUILDDIR=~/build
 ISOLINUXDIR=$BUILDDIR/isolinux
-BASEURL=http://mirror.umd.edu/centos/7.4.1708/os/x86_64
+BASEURL=http://mirror.umd.edu/centos/7/
 
 mkdir -p $ISOLINUXDIR
 curl -s --list-only $BASEURL/repodata/ | sed -n 's/.*href="\([^"]*comps.xml\)[^.].*/\1/p' | xargs -I% curl  --create-dirs $BASEURL/repodata/% -o $BUILDDIR/comps.xml
