@@ -132,5 +132,5 @@ EDCOP uses [Cockpit ](https://github.com/cockpit-project/cockpit) for server/clu
 
 ## Building all required packages
 ---
-The Makefile and Dockerfile pull the necessary RPM packages from both CentOS and EDCOP repos. If you want to build/update the RPMs yourself, you can use the steps outlined in build-packages.md.
+The Makefile and Dockerfile pull the necessary RPM packages from both CentOS and EDCOP repos. If you want to build/update the RPMs yourself, you can use the steps outlined in build-packages.md. 
 
