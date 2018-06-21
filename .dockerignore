@@ -1,0 +1,3 @@
+# Ignore ISOs in the current directory and subdirectories
+*.iso
+*/*.iso

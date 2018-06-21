@@ -1,18 +1,20 @@
 apiVersion: kubevirt.io/v1alpha1
 kind: OfflineVirtualMachine
 metadata:
-  name: testvm
+  name: windowsvm
 spec:
   running: true
   selector:
     matchLabels:
-      guest: testvm
+      guest: windowsvm
   template:
     metadata:
-      labels: 
-        guest: testvm
-        kubevirt.io/size: small
+      labels:
+        guest: windowsvm
+        kubevirt.io/size: large
     spec:
+      nodeSelector:
+        nodetype: master
       domain:
         devices:
           disks:
@@ -27,20 +29,7 @@ spec:
       volumes:
         - name: registryvolume
           registryDisk:
-            image: kubevirt/cirros-registry-disk-demo
+            image: windows-2012r2:latest
         - name: cloudinitvolume
           cloudInitNoCloud:
-            userDataBase64: SGkuXG4= 
----
-apiVersion: kubevirt.io/v1alpha1
-kind: VirtualMachinePreset
-metadata:
-  name: small
-spec:
-  selector:
-    matchLabels:
-      kubevirt.io/size: small
-  domain:
-    resources:
-      requests:
-        memory: 64M
+            userDataBase64: SGkuXG4=

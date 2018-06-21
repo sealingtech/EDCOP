@@ -31,7 +31,7 @@ edcop-cockpit-machines
 edcop-cockpit-networkmanager
 edcop-cockpit-storaged
 edcop-virtctl
-edcop-helm
+#edcop-helm
 virt-viewer
 kubeadm
 kubelet

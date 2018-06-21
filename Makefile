@@ -1,8 +1,10 @@
 SHELL := /bin/bash
 
-config-offline:
-	$(MAKE) config-offline -C build
-
 iso:
-	$(MAKE) config-offline -C build
-rpm:	
+	docker build -t edcop_builder -f build/Dockerfile .
+	id=$$(docker create edcop_builder); docker cp $$id:/EDCOP/build/EDCOP-dev.iso ./EDCOP-dev.iso; docker rm -v $$id  
+	docker rmi edcop_builder
+
+html:
+	cd ./docs && $(MAKE) html
+

@@ -1,7 +1,7 @@
 %undefine _missing_build_ids_terminate_build
 
 Name:		edcop-virtctl
-Version:	1
+Version:	0.5
 Release:	0
 Summary:	EDCOP KubeVirt Controller Binary
 

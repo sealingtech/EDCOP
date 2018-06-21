@@ -9,7 +9,7 @@ mkdir -p /etc/pki/tls/csr
 
 openssl req -subj '/CN=edcop-root/O=Sealing Technologies Inc/L=Columbia/ST=Maryland/C=US' -new -newkey rsa:2048 -sha256 -days 7300 -nodes -x509 -extensions v3_ca -keyout /etc/pki/CA/private/edcop-root.key -out /etc/pki/CA/certs/edcop-root.crt
 
-openssl req -subj '/CN=edcop-master.local/O=Sealing Technologies Inc/L=Columbia/ST=Maryland/C=US' -new -newkey rsa:2048 -sha256 -days 7300 -nodes -keyout /etc/pki/tls/private/server.key -out /etc/pki/tls/csr/edcop-master.csr
+openssl req -subj '/CN=$HOSTNAME/O=Sealing Technologies Inc/L=Columbia/ST=Maryland/C=US' -new -newkey rsa:2048 -sha256 -days 7300 -nodes -keyout /etc/pki/tls/private/server.key -out /etc/pki/tls/csr/edcop-master.csr
 
 openssl x509 -req -days 7300 -extensions server_cert -set_serial 01 -CA /etc/pki/CA/certs/edcop-root.crt -CAkey /etc/pki/CA/private/edcop-root.key -in /etc/pki/tls/csr/edcop-master.csr -out /etc/pki/tls/certs/server.crt
 
@@ -66,7 +66,7 @@ EOF
 cat <<EOF | tee /etc/systemd/system/EDCOP-firstboot.service
 [Unit]
 Description=Auto-execute my post install scripts
-After=network.target
+After=network.target kubelet.service chronyd.service 
 
 [Service]
 ExecStart=/root/firstboot.sh
@@ -79,7 +79,7 @@ EOF
 
 cat <<EOF | tee /etc/cockpit/cockpit.conf
 [WebService]
-Origins = https://<insert-fqdn> https://
+Origins = https://$HOSTNAME
 AllowUnencrypted=true
 UrlRoot=/admin/
 LoginTitle=EDCOP
@@ -93,7 +93,7 @@ sed -i --follow-symlinks "s/<insert-master-ip>/$PXEIP/g" /EDCOP/pxe/deploy/ks/mi
 sed -i --follow-symlinks "s/<insert-drive>/$DRIVE/g" /EDCOP/pxe/deploy/ks/minion/main.ks
 sed -i --follow-symlinks "s/<insert-pxeif>/$PXEIF/g" /EDCOP/pxe/deploy/ks/minion/main.ks
 sed -i --follow-symlinks "s/<insert-clusterif>/$MINIONIF/g" /EDCOP/pxe/deploy/ks/minion/main.ks
-sed -i "/localhost/ s/$/ edcop-master.local $(hostname)/" /etc/hosts
+sed -i "/localhost/ s/$/ master.local $HOSTNAME/" /etc/hosts
 
 cp /EDCOP/pxe/deploy/ks/minion/grub.cfg /EDCOP/pxe/
 cp /EDCOP/pxe/deploy/EFI/BOOT/grubx64.efi /EDCOP/pxe/

@@ -1,127 +1,136 @@
 # EDCOP
 The Expandable Defensive Cyber Operations Platform
+---
+**NOTE:**  This is still in the prototype phase.  While the tools work, there are some growing pains as well as known and possibly unknown defects.  
+
+EDCOP is a bootable ISO based on Centos 7.  EDCOP will install all the necessary components required for deploying EDCOP-Tools from a repository. Current Tools that are supported natively (linked to associated GitHub repos):
++ [Suricata IDS/IPS](https://github.com/sealingtech/EDCOP-SURICATA)
++ [Bro NSM/IDS](https://github.com/sealingtech/EDCOP-BRO)
++ [Moloch Full-PCAP](https://github.com/sealingtech/EDCOP-MOLOCH)
++ [ElasticSearch](https://github.com/sealingtech/EDCOP-ELASTICSEARCH)
++ [ElasticSearch XPACK](https://github.com/sealingtech/EDCOP-XPACK)
++ [Kibana](https://github.com/sealingtech/EDCOP-KIBANA)
+
+Checkout this quick feature demo of EDCOP:
+
+[![EDCOP Feature Demo](https://github.com/sealingtech/EDCOP/raw/master/docs/images/youtube_video.png)](https://www.youtube.com/watch?v=k6DARQP9CXo)
 
 ## Overview
 ---
-The EDCOP is a platform to deploy virtual network defense tools on.
+The EDCOP is a scalable cluster to deploy virtual network defense tools on. It is designed to install a kubernetes cluster that is purpose-built to deploy and manage tools for Defensive Cyber Operations (DCO), although it could be used for any NFVi or standard application. 
 
-## Setup Build Environment
-This procedure assumes that you have already installed a CentOS 7.4 Minimal installation and have at least 10GB of space available.
+![EDCOP Architecture](https://github.com/sealingtech/EDCOP/raw/master/docs/images/stacked_platform_concept.png)
+
+EDCOP is designed to be a platform to deploy any CND tools.  Once deployed you will have Bro, Suricata, ELK stack and other tools made available to you.  There is a seperate Github Repository available here: [EDCOP-TOOLS](https://github.com/sealingtech/EDCOP-TOOLS)
+
+## Quickstart
 ---
+For the more adventurous, you can [download the latest release installation ISO](https://github.com/sealingtech/EDCOP/releases/download/0.9.1/EDCOP-0.9.1.iso), and give it a try (we'd love the feedback).
 
-#### Install an initial set of packages and EDCOP Repo
-```shell
-sudo yum --disablerepo=* --enablerepo=base --enablerepo=extras install net-tools mlocate vim git epel-release wget patch rpm-build gcc openssl-devel checkpolicy selinux-policy-devel kernel-devel doxygen python-six libcap-ng-devel isomd5sum syslinux gcc createrepo mkisofs yum-utils golang
-
-sudo rpm -ivh http://repos.sealingtech.org/edcop/edcop-repo-1-0.noarch.rpm
-```
-
-#### Setup GIT and clone repo
+To build the ISO, simply clone the repo and run `make iso` (requires docker on the host system and ~10GB free space). Validated on Mac, CentOS, and Ubuntu.
 
 ```shell
-git config --global user.name "User Name"
-git config --global user.email "email.address@sealingtech.org"
-git clone https://github.com/sealingtech/EDCOP
+git clone https://github.com/sealingtech/EDCOP.git
+make iso
 ```
+This will create the docker build container and build the installer ISO from online.
 
-#### Mount CentOS ISO
-The Offline Build scripts pull the required packages from the CentOS install disk. This should be mounted in a location expected by the c7-media repo that is built into CentOS 7.
+If successful, you should have a file called "EDCOP-dev.iso" in your folder.
 
-```shell
-mkdir -p /media/cdrom
-sudo mount /dev/cdrom /media/cdrom
-```
+The system is installed with the following default UN/PW:
+
+**Default Username:** root
+
+**Default Password:** open.local.box
+
+## Installation
+Deploying EDCOP first involves booting the ISO and running the install setup on the master node.  Once this is complete, minions can be automatically built over the network through PXE services.
+
+### Hardware Pre-Requisites
+The EDCOP installer has been tested on both physical and VMs, however it expects a minimum amount of resources on both the Master server and Minions. At this time, the **Master and Minion must have the same hardware specs**.
+
+| Resource                 | Minimum Spec  |
+| ------------------------ |:-------------:|
+| CPU                      | 4 cores       |
+| Memory                   | 8 GB          |
+| Harddrive 1 (OS)         | 80 GB         |
+| Harddrive 2 (Data)       | 300 GB        |
+| Network Interfaces       | 2 NICs        |
 
 
-## Building Packages
+
+After booting from the install disk, you'll be asked a series of questions to set the Network and Storage:
+
+![Install Prompt](https://github.com/sealingtech/EDCOP/raw/master/docs/images/installation_prompt.png)
+
+### Network Settings:
+
+The installer will make a feeble attempt to guess what your network settings should be. This is normally incorrect and should probably be answered _**N**_ and entered manually. 
+
++ **Enter hostname (entire FQDN):**
+
+   EDCOP requires a FQDN and corresponding DNS entry (e.g. "edcop.example.com" or "dev.edcop.io"). After installation, you must access the Admin panel with the FQDN (not IP address).
+
++ **TEAM the network interfaces on Master? (Y/N):**
+
+   For large clusters, it's recommended to team multiple interfaces (if testing in VMs, recommend answering **_N_**). Answering **_Y_** will use LACP to team the provided interfaces, which must be configured on the switch as well. The new interface will be called "team0".
+
++ **Enter CLUSTER Interface:**
+
+   If you answer **_N_** to the teaming, you must enter an interface to communicate with the rest of the cluster.
+
++ **Would you like to set the CLUSTER interface for DHCP? (Y/N)**
+
+   You can set the CLUSTER interface for DHCP, however remember that this required a corresponding DNS entry. If answering _**N**_ you'll be prompted for IP Address, Netmask, Gateway, and DNS. 
+
++ **Enter PXE-Server Interface:**
+
+   EDCOP installs a PXEboot server on the Master server that allows for auto-installing the minions. The PXE-interface should be on a separate network/vlan. This network should have no DHCP servers on it (the master will start a DHCP server for PXE).
+   
++ **Enter PXE-Server IP Address:**
+
+   Since this is on closed network, any IP address should work (e.g. 10.50.50.10)
+   
++ **Enter PXE-Server Netmask:**
+
+   Ensure a large enough network to cover all minions/nodes to be installed.
+   
++ **Enter last octet of DHCP starting IP:**
+
+   Enter only the last octet for the DHCP server, for example _**100**_
+
++ **Enter last octet of DHCP ending IP:**
+
+   Enter only the last octet for the DHCP server, for example entering _**150**_ will give you 51 IP addresses for the PXEboot server
+
+### Storage Settings:
+
+At this time, EDCOP allows for an OS disk and a DATA disk. The installation will show the device-id (e.g. sda or sdb) and the corresponding size. Follow the instructions to select which disk is for the OS and which is for the DATA (such as ElasticSearch event storage)
+
+## Using EDCOP
+
+The system is installed with the following default UN/PW:
+
+**Default Username:** root
+
+**Default Password:** open.local.box
+
+After installation, EDCOP runs a service called "EDCOP-firstboot" to finish installing kubernetes, calico, multus, and the other internal cluster components. For normal operations, this requires internet access (a completely offline installer is in development). The service will attempt to ping 8.8.8.8 to verify internet connectivity. If no connectivity is found, the service will fail.
+
+You can validate the service is running with: `systemctl status EDCOP-firstboot`
+
+Once the service has finished installing everything, the follwing URLs can be accessed:
+
+| URL                         | Role                         |
+| --------------------------- |:----------------------------:|
+| https://\<fqdn\>/admin        | Cockpit Admin Panel        |
+| https://\<fqdn\>/kubernetes-ui|Kubernetes Dashboard        |
+| https://\<fqdn\>/loadbalancer |Traefik Ingress Loadbalancer|
+| https://apps.\<fqdn\>         |Kubeapps DCO deployment UI  |
+
+EDCOP uses [Cockpit ](https://github.com/cockpit-project/cockpit) for server/cluster administration. Login with the UN/PW shown above. 
+
+## Building all required packages
 ---
+The Makefile and Dockerfile pull the necessary RPM packages from both CentOS and EDCOP repos. If you want to build/update the RPMs yourself, you can use the steps outlined in build-packages.md. 
 
-Most of the packages required to create the install disk are available in the EDCOP repo at http://repos.sealingtech.org/edcop/1.0. However, if you would like to build these packages yourself, these procedures will help.
-
-If you prefer to get the RPMs from the repo, you can install that repo and download the packages via:
-
-```shell
-rpm -ivh http://repos.sealingtech.org/edcop/edcop-repo-1-0.noarch.rpm
-yumdownloader --resolve --disablerepo=\* --enablerepo=c7-media --enablerepo=edcop <packages>
-```
-
-Packages for building:
-*openvswitch RPM
-*openvswitch-devel RPM
-*dpdk-stable RPM
-*dpdk-stable-devel RPM
-*edcop-cni Plugins (multus, SR-IOV, OVS, flannel, etc)
-
-
-
-
-The following sections will walk trhough building the DPDK and Openvswitch RPM packages.
-
-#### Install Build Dependencies
----
-
-```shell
-yum install net-tools mlocate vim git epel-release wget patch rpm-build gcc openssl-devel checkpolicy selinux-policy-devel htop kernel-devel doxygen python-six libcap-ng-devel isomd5sum syslinux gcc createrepo mkisofs yum-utils
-```
-
-#### Building DPDK Packages
----
-The following script will download DPDK 16.11, build the required RPMs and install to your local build system. The DPDK RPMs must be installed before building OpenvSwitch.
-
-```shell
-mkdir -p ~/rpmbuild/SOURCES
-wget -O dpdk-stable-16.11.1.tar.xz http://fast.dpdk.org/rel/dpdk-16.11.1.tar.xz
-tar xf dpdk-stable-16.11.1.tar.xz
-patch dpdk-stable-16.11.1/pkg/dpdk.spec dpdk_stech_5-5-2017.patch
-cp ./dpdk-stable-16.11.1.tar.xz ~/rpmbuild/SOURCES/
-rpmbuild -bb dpdk-stable-16.11.1/pkg/dpdk.spec
-cp ~/rpmbuild/RPMS/x86_64/dpdk-stable-*.rpm .
-yum localinstall ./dpdk-stable-16.11.1-1.x86_64.rpm ./dpdk-stable-devel-16.11.1-1.x86_64.rpm
-ldconfig
-```
-
-
-#### Building OpenvSwitch Packages
----
-The following script will build OpenvSwitch 2.7.0 RPMs.
-
-```shell
-wget http://openvswitch.org/releases/openvswitch-2.7.0.tar.gz
-tar xf openvswitch-2.7.0.tar.gz
-patch openvswitch-2.7.0/rhel/openvswitch.spec openvswitch_stech_5-5-2017.patch
-cp ./openvswitch-2.7.0.tar.gz ~/rpmbuild/SOURCES/
-rpmbuild -bb openvswitch-2.7.0/rhel/openvswitch.spec
-cp ~/rpmbuild/RPMS/x86_64/openvswitch-*.rpm .
-```
-
-
-#### BUILDING CNI PLUGINS and RPM
-
-##### Build Multus
----
-git clone https://github.com/Intel-Corp/multus-cni.git
-cd ./multus-cni
-./build.sh
-
-##### Build SR-IOV Plugin
----
-git clone https://github.com/Intel-Corp/sriov-cni.git
-cd ./sriov-cni
-./build.sh
-
-##### Build Standard CNI Plugin Set
----
-git clone https://github.com/containernetworking/plugins.git
-cd ./plugins
-./build.sh
-
-##### Build OVS-CNI
----
-mkdir -p ~/go/src/github.com/John-Lin/
-cd ~/go/src/github.com/John-Lin/
-git clone https://github.com/John-Lin/ovs-cni.git
-cd ./ovs-cni
-go get -u github.com/kardianos/govendor
-govendor sync
-/home/admin/go/bin/govendor sync
-./build.sh

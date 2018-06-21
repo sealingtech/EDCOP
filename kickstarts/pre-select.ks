@@ -2,7 +2,7 @@
 exec < /dev/tty6 > /dev/tty6 2> /dev/tty6
 chvt 6
 
-function printLogo() {
+function STECHLogo() {
 echo '                                                             //'
 echo '                                                           / /'
 echo '                                                         /  /'
@@ -24,11 +24,24 @@ echo '                                        //'
 
 }
 
+
+function printLogo() {
+echo '__/\\\\\\\\\\\\\\\__/\\\\\\\\\\\\___________/\\\\\\\\\_______/\\\\\_______/\\\\\\\\\\\\\___        '
+echo ' _\/\\\///////////__\/\\\////////\\\______/\\\////////______/\\\///\\\____\/\\\/////////\\\_       '
+echo '  _\/\\\_____________\/\\\______\//\\\___/\\\/_____________/\\\/__\///\\\__\/\\\_______\/\\\_      '
+echo '   _\/\\\\\\\\\\\_____\/\\\_______\/\\\__/\\\______________/\\\______\//\\\_\/\\\\\\\\\\\\\/__     '
+echo '    _\/\\\///////______\/\\\_______\/\\\_\/\\\_____________\/\\\_______\/\\\_\/\\\/////////____    '
+echo '     _\/\\\_____________\/\\\_______\/\\\_\//\\\____________\//\\\______/\\\__\/\\\_____________   '
+echo '      _\/\\\_____________\/\\\_______/\\\___\///\\\___________\///\\\__/\\\____\/\\\_____________  '
+echo '       _\/\\\\\\\\\\\\\\\_\/\\\\\\\\\\\\/______\////\\\\\\\\\____\///\\\\\/_____\/\\\_____________ '
+echo '        _\///////////////__\////////////___________\/////////_______\/////_______\///______________'
+}
+
 IFLIST=$(ip -o link show | awk -F': ' '{print $2}')
 IFARRAY=(${IFLIST[@]})
 
 
-HOSTNAME="master-$RANDOM"
+HOSTNAME="master-$RANDOM.local"
 CLUSTERIF="${IFARRAY[1]}"
 MASTERIP="DHCP"
 MINIONIF="${CLUSTERIF}"
@@ -37,6 +50,7 @@ PXEIP=10.50.50.10
 PXENETMASK=255.255.255.0
 DHCPSTART=10.50.50.100
 DHCPEND=10.50.50.150
+DHCP="Y"
 
 function valid_ip()
 {
@@ -76,7 +90,7 @@ done
 function getconfig() {
    clear
    printLogo
-   read -p "Enter hostname    : " HOSTNAME
+   read -p "Enter hostname (entire FQDN)   : " HOSTNAME
    echo "Available Interfaces"
    echo "${IFLIST[@]}"
    read -p "TEAM the network interfaces on Master? (Y/N)" TEAM
@@ -142,19 +156,27 @@ else
 fi
 
 echo "network  --device=lo --hostname=$HOSTNAME" > /tmp/pre-hostname
+
 if [[ $TEAM = "Y" ]]
 then
-cat <<EOF | tee -a /tmp/pre-hostname
-network --bootproto=static --device=$CLUSTERIF --gateway=172.16.250.1 --ip=172.16.250.120 --nameserver=172.16.250.1 --netmask=255.255.255.0 --activate --teamslaves=$TEAMIFS --teamconfig='{"runner": {"name": "lacp","active": true,"fast_rate": true,"tx_hash": ["eth", "ipv4","ipv6"]},"link_watch": {"name": "ethtool"}}'  
-EOF
-elif [[ $MASTERIP = "DHCP" ]] || [[ $MASTERIP = "dhcp" ]]
-then
-echo "network --device=$CLUSTERIF --bootproto=dhcp --activate" >> /tmp/pre-hostname
-else
-echo "network --device=$CLUSTERIF --bootproto=statis --ip=$MASTERIP --netmask=$MASTERNETMASK --gateway=$MASTERGW --nameserver=MASTERDNS --activate" >> /tmp/pre-hostname
+TEAMPARAMS="--teamslaves=$TEAMIFS --teamconfig='{\"runner\": {\"name\": \"lacp\",\"active\": true,\"fast_rate\": true,\"tx_hash\": [\"eth\", \"ipv4\",\"ipv6\"]},\"link_watch\": {\"name\": \"ethtool\"}}'"
 fi
 
-echo "network --bootproto=static --device=$PXEIF --ip=$PXEIP --netmask=$PXENETMASK --ipv6=auto" >> /tmp/pre-hostname
+if [[ $DHCP = "Y" ]]
+then
+BOOTPROTO="dhcp"
+elif [[ $DHCP = "N" ]]
+then
+BOOTPROTO="static"
+STATICPARAMS="--ip=$MASTERIP --netmask=$MASTERNETMASK --gateway=$MASTERGW --nameserver=$MASTERDNS"
+else
+echo "ERROR: unknown answer $DHCP in DHCP variable! Expected Y or N."
+fi
+
+cat <<EOF | tee -a /tmp/pre-hostname
+network --device=$CLUSTERIF --bootproto=$BOOTPROTO $STATICPARAMS $TEAMPARAMS --activate 
+network --bootproto=static --device=$PXEIF --ip=$PXEIP --netmask=$PXENETMASK --ipv6=auto --nodefroute --activate
+EOF
 
 ################################
 #### EDCOP Drive Selection #####

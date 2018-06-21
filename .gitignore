@@ -1,2 +1,10 @@
 #Ignore the install disc that is created
 *.iso
+
+# OS generated files #
+# ######################
+.DS_Store?
+ehthumbs.db
+Icon?
+Thumbs.db
+
