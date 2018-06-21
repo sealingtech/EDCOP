@@ -44,10 +44,8 @@ def update_bootproto_widget(widget):
 
 
 # pylint: disable=too-many-instance-attributes
-class MyTestApp(npyscreen.NPSAppManaged):
-    """TestApp.
-
-    All Forms registered with an NPSAppManaged instance can access the
+class menuSystem(npyscreen.NPSAppManaged):
+    """ All Forms registered with an NPSAppManaged instance can access the
     controlling application as self.parentApp.
     """
 
@@ -190,7 +188,15 @@ class MainForm(npyscreen.ActionFormMinimal):
 
     def on_ok(self):
         """Next."""
+        self.editing = False
         self.parentApp.setNextForm(None)
+        
+    
+    def exit_application(self):
+        self.editing = False
+        self.parentApp.setNextForm(None)
+        
+
 
 
 class NetworkSelectForm(npyscreen.ActionFormMinimal):
@@ -504,13 +510,16 @@ def logData(KICKSTART_MENU):
       
 if __name__ == '__main__':
     try:
-        KICKSTART_MENU = MyTestApp()
+        KICKSTART_MENU = menuSystem()
         KICKSTART_MENU.run()
         
         logData(KICKSTART_MENU)
-        
+      
         ksCreator(KICKSTART_MENU)
+        
+        sys.exit(0)
     except KeyboardInterrupt:
         logData(KICKSTART_MENU)
+        sys.exit(0)
 
-        sys.exit()
+    
