@@ -116,21 +116,21 @@ class MainMenuWidget(npyscreen.MultiLineAction):
 
 # pylint: disable=too-many-instance-attributes
 class NetworkMenuWidget(npyscreen.MultiLineAction):
-    """Display main menu."""
+    """Display main menu for networks """
 
     def __init__(self, *args, **keywords):
-        """Init."""
+        """ Initalize form 
+        
+            Note: inline trust, inline untrust, and passive networks are currently disabled
+        """
         super(NetworkMenuWidget, self).__init__(*args, **keywords)
         self.menu_pxe = "PXE Network"
         self.menu_cluster = "Cluster Network"
-        self.menu_trust = "Inline-Trust (LAN) Network"
-        self.menu_untrust = "Inline-UnTrust (WAN) Network"
-        self.menu_passive = "Passive Network"
+        # self.menu_trust = "Inline-Trust (LAN) Network"
+        # self.menu_untrust = "Inline-UnTrust (WAN) Network"
+        # self.menu_passive = "Passive Network"
         self.values = [self.menu_pxe,
-                       self.menu_cluster,
-                       self.menu_trust,
-                       self.menu_untrust,
-                       self.menu_passive]
+                       self.menu_cluster]
         self.max_height = len(self.values) + 1
 
     # pylint: disable=invalid-name
@@ -140,12 +140,12 @@ class NetworkMenuWidget(npyscreen.MultiLineAction):
             self.parent.parentApp.switchForm("NETWORKPXE")
         if act_on_this == self.menu_cluster:
             self.parent.parentApp.switchForm("NETWORKCLUSTER")
-        if act_on_this == self.menu_trust:
-            self.parent.parentApp.switchForm("NETWORKTRUST")
-        if act_on_this == self.menu_untrust:
-            self.parent.parentApp.switchForm("NETWORKUNTRUST")
-        if act_on_this == self.menu_passive:
-            self.parent.parentApp.switchForm("NETWORKPASSIVE")
+        #if act_on_this == self.menu_trust:
+        #    self.parent.parentApp.switchForm("NETWORKTRUST")
+        #if act_on_this == self.menu_untrust:
+        #    self.parent.parentApp.switchForm("NETWORKUNTRUST")
+        #if act_on_this == self.menu_passive:
+        #    self.parent.parentApp.switchForm("NETWORKPASSIVE")
 
 
 # pylint: disable=too-many-instance-attributes
@@ -188,15 +188,56 @@ class MainForm(npyscreen.ActionFormMinimal):
 
     def on_ok(self):
         """Next."""
-        self.editing = False
-        self.parentApp.setNextForm(None)
         
+        # Validate all forms have the minimum required data
+        hostnameComplete = False
+        clusterNetworkComplete = False
+        pxeNetworkComplete = False
+        storageComplete = False
+        incompleteForms = ""
+        
+        """ Hostname Validation """
+        if(KICKSTART_MENU.host.name!=""):
+            hostnameComplete = True
+        else:
+            incompleteForms += "\nHostname"
+        
+        """ PXE Network Validation """
+        if((KICKSTART_MENU.network_pxe.ip_address != "") and (KICKSTART_MENU.network_pxe.netmask != "") and (KICKSTART_MENU.network_pxe.interface != None)):
+            if((KICKSTART_MENU.network_pxe.bootproto == "dhcp") and (KICKSTART_MENU.network_pxe.dhcp_start != "") and (KICKSTART_MENU.network_pxe.dhcp_end != "")):
+                pxeNetworkComplete = True
+            elif(KICKSTART_MENU.network_pxe.bootproto == "static"):
+                pxeNetworkComplete = True
+        else:
+            incompleteForms += "\nPXE Network"
+            
+        """ Cluster Network Valdiation """
+        if((KICKSTART_MENU.network_cluster.ip_address != "") and (KICKSTART_MENU.network_cluster.netmask != "") and (KICKSTART_MENU.network_cluster.interface != None)):
+            clusterNetworkComplete = True
+        else:
+            incompleteForms += "\nCluster Network"
+               
+        """ Storage Validation """
+        if((KICKSTART_MENU.storage_os.mountpoint != "") and (KICKSTART_MENU.storage_os.disk != None)):
+            storageComplete = True
+        else:
+            incompleteForms += "\nStorage (EDCOP OS)"
+                      
+        # Raise an error to the user if they are missing data in any mandatory form
+        if ((hostnameComplete==True) and (clusterNetworkComplete==True) and (pxeNetworkComplete==True) and (storageComplete==True)):
+            try:
+                self.editing = False
+                self.parentApp.setNextForm(None)
+            except:
+                npyscreen.notify_confirm("Something went wrong. Please try again.", title="Error")
+        else:
+            formMessage = "There appears to be missing data on the following forms: \n  \n  \n" + incompleteForms
+            npyscreen.notify_confirm(formMessage, title="Error")    
     
     def exit_application(self):
         self.editing = False
         self.parentApp.setNextForm(None)
         
-
 
 
 class NetworkSelectForm(npyscreen.ActionFormMinimal):
@@ -515,7 +556,7 @@ if __name__ == '__main__':
         
         logData(KICKSTART_MENU)
       
-        ksCreator(KICKSTART_MENU)
+        masterNodeKickstarts(KICKSTART_MENU)
         
         sys.exit(0)
     except KeyboardInterrupt:

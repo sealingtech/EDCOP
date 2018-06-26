@@ -1,4 +1,4 @@
-bootloader --append=\crashkernel=auto --location=mbr --boot-drive={{ data.storage_os._disk[0] }} intel_iommu=on iommu=pt default_hugepagesz=2M hugepagesz=2M hugepages=2048\
+bootloader --append=\ crashkernel=auto --location=mbr --boot-drive={{ data.storage_os._disk[0] }} intel_iommu=on iommu=pt default_hugepagesz=2M hugepagesz=2M hugepages=2048\
 
 {% if data.storage_fast._disk != None and data.storage_bulk._disk != None and data.storage_shared._disk != None %}
 {# if If Base OS, Bulk, Fast, and Shared storgage drives are defined #}
