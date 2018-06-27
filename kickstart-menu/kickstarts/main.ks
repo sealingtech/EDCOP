@@ -26,10 +26,10 @@ timezone America/New_York --isUtc
 # System bootloader configuration
 
 
-%include /tmp/ks/storage.ks
+%include /run/install/repo/ks/storage.ks
 
-%include /tmp/ks/packages.ks
+%include /run/install/repo/ks/packages.ks
 
-%include /tmp/ks/post-nochroot.ks
+%include /run/install/repo/ks/post-nochroot.ks
 
-%include /tmp/ks/post-chroot.ks
+%include /run/install/repo/ks/post-chroot.ks

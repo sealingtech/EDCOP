@@ -556,7 +556,8 @@ if __name__ == '__main__':
         
         logData(KICKSTART_MENU)
       
-        masterNodeKickstarts(KICKSTART_MENU)
+        kickstartGenerator(master, KICKSTART_MENU)
+        kickstartGenerator(minion, KICKSTART_MENU)
         
         sys.exit(0)
     except KeyboardInterrupt:
