@@ -387,6 +387,7 @@ class PXENetForm(NetForm):
             self.network.interface = self.parentApp.host.interfaces[self.interface.value[0]]
             self.network.ip_address = self.ipaddress.value
             self.network.netmask = self.netmask.value
+            self.network.network = networkID(self.network.ip_address, self.network.netmask)
             self.network.dhcp_start = self.dhcp_start.value
             self.network.dhcp_end = self.dhcp_start.value
             self.parentApp.switchFormPrevious()
@@ -426,6 +427,7 @@ class ClusterNetForm(NetForm):
             self.network.bootproto = self.parentApp.bootproto[self.bootproto.value[0]]
             self.network.ip_address = self.ipaddress.value
             self.network.netmask = self.netmask.value
+            self.network.network = networkID(self.network.ip_address, self.network.netmask)
             self.network.dns1 = self.dns1.value
             self.network.dns2 = self.dns2.value
             self.network.gateway = self.gateway.value
@@ -547,7 +549,21 @@ def logData(KICKSTART_MENU):
 
     outFile.write(dump)
     outFile.close()
+
+def networkID(ip, netmask):
+    # Get the network ID based on a given IP and netmask
+    ip_split = [0]*4
+    netmask_split = [0]*4
+    network = [0] * 4
     
+    ip_split = ip.split('.')
+    netmask_split = netmask.split('.')
+    
+    for ind in range(len(ip_split)):
+        network[ind] = int(ip_split[ind]) & int(netmask_split[ind])
+    
+    return '.'.join(str(idx) for idx in network)
+      
       
 if __name__ == '__main__':
     try:

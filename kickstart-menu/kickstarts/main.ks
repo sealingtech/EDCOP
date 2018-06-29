@@ -17,7 +17,7 @@ selinux --disabled
 # Reboot when complete
 reboot
 
-%include /tmp/ks/network.ks
+%include /run/install/repo/ks/network.ks
 
 # Root password
 rootpw --plaintext open.local.box

@@ -54,6 +54,7 @@ class Network(object):
     def __init__(self,
                  ip_address=None,
                  netmask=None,
+                 network=None,
                  interface=None,
                  enabled=False,
                  bootproto=None):
@@ -105,6 +106,7 @@ class PXENetwork(Network):
                  dhcp_end='10.50.50.150',
                  ip_address='10.50.50.1',
                  netmask='255.255.255.0',
+                 network='10.50.50.0',
                  bootproto='static',
                  **kargs):
         """Init."""
@@ -135,6 +137,7 @@ class ClusterNetwork(Network):
                  gateway='10.250.250.1',
                  ip_address='10.250.250.10',
                  netmask='255.255.255.0',
+                 network='10.250.250.0',
                  bootproto='static',
                  teaming='yes',
                  **kargs):
