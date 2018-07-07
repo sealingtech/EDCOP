@@ -1,0 +1,18 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+ name: rook-ingress
+ namespace: rook-ceph
+ annotations:
+   kubernetes.io/ingress.class: traefik
+   # ingress.kubernetes.io/auth-type: "basic"
+   # ingress.kubernetes.io/auth-secret: "ingress-auth"
+spec:
+ rules:
+  - host: ceph.<insert-fqdn>
+    http:
+      paths:
+      - path: /
+        backend:
+          serviceName: rook-ceph-mgr-dashboard
+          servicePort: 7000

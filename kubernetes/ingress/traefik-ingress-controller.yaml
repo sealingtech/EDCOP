@@ -162,4 +162,4 @@ spec:
           serviceName: traefik-web-ui
           servicePort: 80
   tls:
-  - secretName: edcop-tls
+  - secretName: edcop-wild
