@@ -171,10 +171,10 @@ metadata:
     traefik.frontend.rule.type: PathPrefixStrip
 spec:
   rules:
-  - host: <insert-fqdn>
+  - host: kubernetes.<insert-fqdn>
     http:
       paths:
-      - path: /kubernetes-ui
+      - path: /
         backend:
           serviceName: kubernetes-dashboard
           servicePort: 80

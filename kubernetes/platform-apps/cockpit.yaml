@@ -36,10 +36,10 @@ metadata:
     traefik.frontend.redirect.entryPoint: https
 spec:
   rules:
-  - host: <insert-fqdn>
+  - host: admin.<insert-fqdn>
     http:
       paths:
-      - path: /admin
+      - path: /
         backend:
           serviceName: cockpit
           servicePort: 9090

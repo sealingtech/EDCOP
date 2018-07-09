@@ -23,6 +23,14 @@ fi
 
 }
 
+useradd -r -u 2000 elasticsearch
+mkdir /EDCOP/bulk/esdata
+chown elasticsearch:elasticsearch /EDCOP/bulk/esdata
+
+useradd -r -u 2001 moloch 
+mkdir /EDCOP/bulk/moloch/ /EDCOP/bulk/moloch/raw /EDCOP/bulk/moloch/logs
+chown moloch:moloch /EDCOP/bulk/moloch/ /EDCOP/bulk/moloch/raw /EDCOP/bulk/moloch/logs 
+
 # Increase VM max map count & disable swap
 sysctl -w vm.max_map_count=262144
 echo 'vm.max_map_count=262144' >> /etc/sysctl.conf
@@ -68,6 +76,7 @@ sed -i --follow-symlinks "s/<insert-master-ip>/$MASTERIP/g" /EDCOP/kubernetes/pl
 sed -i --follow-symlinks "s/<insert-fqdn>/$HOSTNAME/g" /EDCOP/kubernetes/platform-apps/kubernetes-dashboard-http.yaml
 sed -i --follow-symlinks "s/<insert-fqdn>/$HOSTNAME/g" /EDCOP/kubernetes/ingress/traefik-ingress-controller.yaml
 sed -i --follow-symlinks "s/<insert-fqdn>/$HOSTNAME/g" /EDCOP/kubernetes/platform-apps/kubeapps.yaml
+sed -i --follow-symlinks "s/<insert-fqdn>/$HOSTNAME/g" /EDCOP/kubernetes/storage/rook-ingress.yaml
 #
 # Copy configuration file to root's home directory. Add to minion deployment
 # This ensures that "kubectl" commands can be run by root on all systems
@@ -135,6 +144,15 @@ kubectl apply --token $token -f /EDCOP/kubernetes/ingress/traefik-ingress-contro
 kubectl label node $(hostname | awk '{print tolower($0)}') edcop.io/nfs-storage=true
 kubectl apply --token $token -f /EDCOP/kubernetes/storage/nfs-provisioner.yaml
 
+#
+# Initial Persistent Volume based on Rook
+#
+mkdir /EDCOP/bulk/ceph
+kubectl apply --token $token -f /EDCOP/kubernetes/storage/operator.yaml
+kubectl apply --token $token -f /EDCOP/kubernetes/storage/cluster.yaml
+kubectl apply --token $token -f /EDCOP/kubernetes/storage/rook-ingress.yaml
+kubectl apply --token $token -f /EDCOP/kubernetes/storage/edcop-block.yaml
+
 
 #
 # Create the Kubernetes Dashboard (already in nginx proxy as https://<master-ip>/dashboard)
@@ -150,5 +168,21 @@ kubectl apply --token $token -f /EDCOP/kubernetes/platform-apps/cockpit.yaml
 # Apply KubeApps Dashboard
 #
 kubectl apply --token $token -f /EDCOP/kubernetes/platform-apps/kubeapps.yaml
+
+
+
+openssl genrsa -out /root/edcop_wild.key 2048
+openssl req -new -sha256 -key /root/edcop_wild.key -out /root/edcop_wild.csr -subj "/C=US/ST=MD/L=Columbia/O=EDCOP/CN=*.$HOSTNAME"
+
+openssl x509 -req -days 3650 -in /root/edcop_wild.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out /root/edcop_wild.crt -sha256
+
+#make cn wild card
+
+kubectl create secret tls --cert=/root/edcop_wild.crt --key=/root/edcop_wild.key -n kube-system edcop-wild
+kubectl create secret tls --cert=/root/edcop_wild.crt --key=/root/edcop_wild.key -n default edcop-wild
+
+update-ca-trust force-enable
+cp /etc/kubernetes/pki/ca.crt /etc/pki/ca-trust/source/anchors/
+update-ca-trust extract
 
 
