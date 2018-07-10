@@ -81,7 +81,7 @@ cat <<EOF | tee /etc/cockpit/cockpit.conf
 [WebService]
 Origins = https://$HOSTNAME
 AllowUnencrypted=true
-UrlRoot=/admin/
+UrlRoot=/
 LoginTitle=EDCOP
 EOF
 

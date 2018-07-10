@@ -154,7 +154,7 @@ EOF
 cat <<EOF | tee /etc/cockpit/cockpit.conf
 [WebService]
 AllowUnencrypted=true
-UrlRoot=/admin
+UrlRoot=/
 EOF
 
 systemctl enable minion-firstboot
@@ -181,5 +181,19 @@ chmod +x /root/minion-firstboot.sh
 echo "<insert-master-ip>        edcop-master.local master" >> /etc/hosts
 sed -i "/localhost/ s/$/ $(hostname)/" /etc/hosts
 
+useradd -r -u 2000 elasticsearch
+mkdir /EDCOP/bulk/esdata
+chown elasticsearch:elasticsearch /EDCOP/bulk/esdata
+
+useradd -r -u 2001 moloch 
+mkdir /EDCOP/bulk/moloch/ /EDCOP/bulk/moloch/raw /EDCOP/bulk/moloch/logs
+chown moloch:moloch /EDCOP/bulk/moloch/ /EDCOP/bulk/moloch/raw /EDCOP/bulk/moloch/logs 
+
+
+mkdir /EDCOP/bulk/ceph
+
+
 %end
+
+
 
