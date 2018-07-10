@@ -11,8 +11,8 @@ network --bootproto=dhcp --device=team0 --teamslaves={{ data.network_cluster.int
 	{% endif %}
 {% else %}
 	{% if data.network_cluster.bootproto=='static' %}
-network --device=static --bootproto=static --ip={{ data.network_cluster._ip_address }} --netmask={{ data.network_cluster._netmask }} --gateway={{ data.network_cluster.gateway }} --nameserver={{ data.network_cluster._dns1 }},{{ data.network_cluster._dns2 }} --activate
+network --device={{ data.network_cluster.interface[0] }} --bootproto=static --ip={{ data.network_cluster._ip_address }} --netmask={{ data.network_cluster._netmask }} --gateway={{ data.network_cluster.gateway }} --nameserver={{ data.network_cluster._dns1 }},{{ data.network_cluster._dns2 }} --activate
 	{% else %}
-network --device={{ data.network_cluster.interface }} --bootproto=dhcp --activate	
+network --device={{ data.network_cluster.interface[0] }} --bootproto=dhcp --activate	
 	{% endif %}
 {%- endif -%}

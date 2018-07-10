@@ -87,7 +87,7 @@ EOF
 
 cat <<EOF | tee /etc/cockpit/cockpit.conf
 [WebService]
-Origins = https://<insert-fqdn> https://
+Origins = https://{{ data.host.name }} https://
 AllowUnencrypted=true
 UrlRoot=/admin/
 LoginTitle=EDCOP
@@ -95,13 +95,13 @@ EOF
 
 chmod +x /root/firstboot.sh
 
-sed -i --follow-symlinks "s/<insert-master-ip>/{{ data.network_pxe._ip_address }}/g" /EDCOP/pxe/pxelinux.cfg/default
-sed -i --follow-symlinks "s/<insert-master-ip>/{{ data.network_pxe._ip_address }}/g" /EDCOP/pxe/deploy/ks/minion/main.ks
-sed -i --follow-symlinks "s/<insert-master-ip>/{{ data.network_pxe._ip_address }}/g" /EDCOP/pxe/deploy/ks/minion/grub.cfg
-sed -i --follow-symlinks "s/<insert-drive>/{{ data.storage_os._disk[0] }}/g" /EDCOP/pxe/deploy/ks/minion/main.ks
-sed -i --follow-symlinks "s/<insert-pxeif>/{{ data.network_pxe.interface }}/g" /EDCOP/pxe/deploy/ks/minion/main.ks
-sed -i --follow-symlinks "s/<insert-clusterif>/{{ data.network_cluster.interface }}/g" /EDCOP/pxe/deploy/ks/minion/main.ks
-sed -i "/localhost/ s/$/ edcop-master.local $(hostname)/" /etc/hosts
+sed -i --follow-symlinks "s/{{ data.network_cluster.ip_address }}/g" /EDCOP/pxe/pxelinux.cfg/default
+sed -i --follow-symlinks "s/{{ data.network_cluster.ip_address }}/g" /EDCOP/pxe/deploy/ks/minion/main.ks
+sed -i --follow-symlinks "s/{{ data.network_cluster.ip_address }}/g" /EDCOP/pxe/deploy/ks/minion/grub.cfg
+sed -i --follow-symlinks "s/{{ data.storage_os._disk[0] }}/g" /EDCOP/pxe/deploy/ks/minion/main.ks
+sed -i --follow-symlinks "s/{{ data.network_pxe.interface }}/g" /EDCOP/pxe/deploy/ks/minion/main.ks
+sed -i --follow-symlinks "s/{{ data.network_cluster.interface }}/g" /EDCOP/pxe/deploy/ks/minion/main.ks
+sed -i "/localhost/ s/$/ edcop-master.local {{ data.host.name }}/" /etc/hosts
 
 cp /EDCOP/pxe/deploy/ks/minion/grub.cfg /EDCOP/pxe/
 cp /EDCOP/pxe/deploy/EFI/BOOT/grubx64.efi /EDCOP/pxe/

@@ -16,8 +16,8 @@ selinux --disabled
 reboot
 
 network  --device=lo --hostname=minion-{{ range(1,65536) | random }}
-network --bootproto=dhcp --device=<insert-clusterif> --activate
-network --bootproto=dhcp --device=<insert-pxeif> --nodefroute
+network --bootproto=dhcp --device={{ data.network_cluster.interface }} --activate
+network --bootproto=dhcp --device={{ data.network_pxe.interface }} --nodefroute
 
 # Temorarily disable firewall while builing
 #firewall --enabled --port=22:tcp,6443:tcp,2379:tcp,2380:tcp,10250:tcp,9090:tcp,30010:tcp
@@ -37,9 +37,9 @@ timezone America/New_York --isUtc
 #       benefits of this have not been fully explored.
 #
 
-bootloader --append=" crashkernel=auto --location=mbr --boot-drive=<insert-drive> intel_iommu=on iommu=pt default_hugepagesz=2M hugepagesz=2M hugepages=2048"
+bootloader --append=" crashkernel=auto --location=mbr --boot-drive={{ data.storage_os._disk[0] }} intel_iommu=on iommu=pt default_hugepagesz=2M hugepagesz=2M hugepages=2048"
 
-%include http://<insert-master-ip>:5415/deploy/ks/minion/storage.ks
+%include http://{{ data.network_cluster.ip_address }}:5415/deploy/ks/minion/storage.ks
 
 %packages --excludedocs
 @^minimal
@@ -125,10 +125,10 @@ sed -i --follow-symlinks 's/cgroup-driver=systemd/cgroup-driver=cgroupfs/g' /etc
 # rather than wget.
 #
 #mkdir -p /EDCOP/images
-#wget -P /EDCOP/images/ -r -np -nH --cut-dirs=50 -R "TRANS.TBL" -R "index.html" http://<insert-master-ip>:5415/deploy/EXTRAS/docker-images/
+#wget -P /EDCOP/images/ -r -np -nH --cut-dirs=50 -R "TRANS.TBL" -R "index.html" http://{{ data.network_cluster.ip_address }}:5415/deploy/EXTRAS/docker-images/
 
 mkdir /root/.kube/
-wget -P /root/.kube/ http://<insert-master-ip>:5415/deploy/EXTRAS/kubernetes/config
+wget -P /root/.kube/ http://{{ data.network_cluster.ip_address }}:5415/deploy/EXTRAS/kubernetes/config
 wget -P /etc/pki/ca-trust/source/anchors/ http://<insert-master-ip>:5415/deploy/EXTRAS/certs/edcop-root.crt
 update-ca-trust
 
@@ -159,7 +159,7 @@ cat <<'EOF' | tee /root/minion-firstboot.sh
 sysctl -w vm.max_map_count=262144
 echo 'vm.max_map_count=262144' >> /etc/sysctl.conf
 
-kubeadm join --token <insert-token> <insert-master-ip>:6443 --discovery-token-unsafe-skip-ca-verification
+kubeadm join --token <insert-token> {{ data.network_cluster.ip_address }}:6443 --discovery-token-unsafe-skip-ca-verification
 
 systemctl start cockpit
 systemctl disable minion-firstboot
@@ -173,7 +173,7 @@ EOF
 
 chmod +x /root/minion-firstboot.sh
 
-echo "<insert-master-ip>        edcop-master.local master" >> /etc/hosts
+echo "{{ data.network_cluster.ip_address }}        edcop-master.local master" >> /etc/hosts
 sed -i "/localhost/ s/$/ $(hostname)/" /etc/hosts
 
 %end

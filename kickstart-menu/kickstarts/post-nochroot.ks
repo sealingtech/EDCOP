@@ -13,6 +13,6 @@ cp -f /run/install/repo/EXTRAS/nginx/nginx.conf /mnt/sysimage/etc/nginx/nginx.co
 cp -f /run/install/repo/EXTRAS/nginx/proxy.conf /mnt/sysimage/etc/nginx/conf.d/proxy.conf
 #cp -f /run/install/repo/EXTRAS/kube-network/* /mnt/sysimage/EDCOP/kube-network/
 cp -rf /run/install/repo/EXTRAS/kubernetes/* /mnt/sysimage/EDCOP/kubernetes/
-cp /tmp/pre-storage /mnt/sysimage/EDCOP/pxe/deploy/ks/minion/storage.ks
+cp /build/isolinux/ks/storage.ks /mnt/sysimage/EDCOP/pxe/deploy/ks/minion/storage.ks
 
 %end

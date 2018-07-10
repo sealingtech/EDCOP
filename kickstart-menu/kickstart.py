@@ -13,7 +13,7 @@ def master():
     
 def minion():
     # data for minion node(s)
-    kickstartScripts = ["main.ks"]
+    kickstartScripts = ["main.ks", "grub.cfg"]
     templateSubfoler = "minion"
     outDir = "minion/"
     return kickstartScripts, templateSubfoler, outDir

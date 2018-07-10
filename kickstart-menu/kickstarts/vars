@@ -1,19 +1,19 @@
 #!/bin/bash
 HOSTNAME={{ data.host.name }}
-CLUSTERIF={{ data.network_cluster.interface }}
-{% if data.network_cluster.bootproto =='dhcp' %}
+CLUSTERIF={{ data.network_cluster.interface[0] }}
+{%- if data.network_cluster.bootproto =='dhcp' -%}
 MASTERIP={{ data.network_cluster.bootproto }}
 MASTERNETMASK=
 MASTERGW=
 MASTERDNS=
-{% else %}
+{%- else %}
 MASTERIP={{ data.network_cluster.ip_address }}
 MASTERNETMASK={{ data.network_cluster.netmask }}
 MASTERGW=
 MASTERDNS={{ data.network_cluster.dns1 }}
-{% endif %}
-MINIONIF={{ data.network_cluster.interface }}
-PXEIF={{ data.network_cluster.interface }}
+{%- endif %}
+MINIONIF={{ data.network_cluster.interface[0] }}
+PXEIF={{ data.network_cluster.interface[0] }}
 PXEIP={{ data.network_cluster._ip_address }}
 PXENETMASK={{ data.network_cluster._netmask }}
 PXENET={{ data.network_cluster.network }}

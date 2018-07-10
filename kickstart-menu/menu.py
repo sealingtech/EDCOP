@@ -554,7 +554,7 @@ def networkID(ip, netmask):
     # Get the network ID based on a given IP and netmask
     ip_split = [0]*4
     netmask_split = [0]*4
-    network = [0] * 4
+    network = [0]*4
     
     ip_split = ip.split('.')
     netmask_split = netmask.split('.')
