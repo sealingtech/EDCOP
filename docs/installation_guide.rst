@@ -192,6 +192,21 @@ EDCOP has deployed a number of internal web inferfaces automatically for you.  T
 - https://ceph.<fqdn>/
 
 
+SSL Certificate Management
+==========================
+
+By default EDCOP will create a wild card certificate that is used by all domains.  This certificate has been signed by an auto-generated Certificate Authority (CA) that is used for internal CA operations.  This CA is generally not trusted by your browser.  To make SSL error messages go away a user can trust the internal kubernetes certificate authority.  
+
+The certificate is stored in /root/ca.cer and can be added to user's internal Root CA store.
+
+For windows follow this guide:
+https://blogs.technet.microsoft.com/sbs/2008/05/08/installing-a-self-signed-certificate-as-a-trusted-root-ca-in-windows-vista/
+
+
+Deploying Capabilities
+======================
+
+To deploy additional tools users can go to apps.<fqdn> and select the applications to they want to deploy.  Selecting "Available Capabilities" will bring up a number of charts that can then be deployed.  Each chart will have built in instructions.  Many of these charts values are set to defaults that will work with smaller deployments but more planning is required for larger deployments to get more performance out of the tools.
 
 
 

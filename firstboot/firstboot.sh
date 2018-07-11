@@ -176,6 +176,8 @@ openssl req -new -sha256 -key /root/edcop_wild.key -out /root/edcop_wild.csr -su
 
 openssl x509 -req -days 3650 -in /root/edcop_wild.csr -CA /etc/kubernetes/pki/ca.crt -CAkey /etc/kubernetes/pki/ca.key -CAcreateserial -out /root/edcop_wild.crt -sha256
 
+openssl x509 -outform der -in /etc/kubernetes/pki/ca.crt -out /root/ca.cer
+
 #make cn wild card
 
 kubectl create secret tls --cert=/root/edcop_wild.crt --key=/root/edcop_wild.key -n kube-system edcop-wild
