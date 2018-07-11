@@ -30,11 +30,16 @@ EDCOP requires a specific network configuration to work properly.  A switch will
 .. image:: images/network_configuration.png
 
 DNS Requirements
-EDCOP requires three DNS entries currently (Eventually only two will be required).  It is recommended to make a seperate sub-domain for the entire cluster.  All servers in the cluster must be able to resolve this as well as the workstations which are accessing services inside of the cluster.
+================
+EDCOP requires two DNS entries. When you setup the master you will be asked for the fully qualified domain name (FQDN).  The same domain name must be entered into the DNS server pointing to the master system.  In addition, there must be a wild card subdomain under that same FQDN.  The wild card DNS entry can be pointed either at the master as well or it can be load balanced by an external load balancer to the master and all minions on 80 and 443.  Load balancing is optional
 
-- <subdomain>:       This will point to the network address of the master server
-- apps.<subdomain>:  This will also point to the master and be used for the EDCOP marketplace.
-- minion addresses:  This can be setup after the  minions are built.  It is reccomended to load balance traffic to  the minions if possible.  In this case, a VIP would be created on a load balancer and then forward requests down to the minions in a round robin fashion.
+Example:
+
+You name the master, master.edcop.io and give it the IP of 192.168.1.10.  You create a wild card subdomain of *.master.edcop.io of 192.168.1.10.
+
+It is necessarry to be able to resolve these entries from both inside the cluster as well as any clients accessing the cluster.  You must access the cluster by using the domain name and not by IP.
+
+
 
 
 Building ISO image
@@ -123,20 +128,21 @@ Accessing Cockpit
 
 If you have configured the DNS entry correctly, then Cockpit should be available at this point.  Open a web browser and go to:
 
-https://<hostname of master>/admin/
+https://admin.<fqdn>/
 
-(Note that the trailing slash is important)
 
 Logon with root as the user and the password you set earlier
 
 Building the Minions
 ====================
 
+Once the master is successfully running, minions can be PXE booted off of the main system.  This is not needed on single node deployments.
+
 Boot off of the PXE Interface in startup (see system manual for this process)
 
 If the PXE is configured correctly, an Install the Expandable DCO Platform (EDCOP) option will be displayed, select Enter
 
-After the installation process is completed and the system reboots.  Access cockpit and select Cluster -> Nodes and your new node should appear here after a bit.
+After the installation process is completed and the system reboots.  Access cockpit and select Cluster -> Nodes and your new node should appear here after a bit and the status should be set to ready.
 
 From the command line, it is also possible to do this from the command line on the master using:
 
@@ -150,39 +156,46 @@ Labeling nodes
 
 NOTE: This section will need to change when more granular roles are configured
 
-Nodes must be given roles in order to take certain tasks.  In the Helm charts there are often options to select NodeSelectors.  Log on to the master node and run the command:
+Nodes must be given roles in order to take certain tasks.  For mid to large scale deployments it is best to not label the master with these and instead focus on the minions.  For single node and very small deployments it is possible to apply these to the master.  In the Helm charts there are often options to select NodeSelectors.  Log on to the master node and run the command:
 
 .. code-block:: bash
 
-  kubectl label node <name of minion node> nodetype=worker
+  kubectl label node <name of node> nodetype=worker
+  kubectl label node <name of node> sensor=true
+  kubectl label node <name of node> data=true
+  kubectl label node <name of node> infrastructure=true
+  kubectl label node <name of node> ingest=true
 
-This process will be repeated for each node.
+For single node deployments it is necessarry to apply all these labels to the master node.  For multiple node deployments it is possible to choose which nodes take certain roles.
 
-Datastorage workaround
+
+Verifying installation
 ======================
-This is temporary fix in the prototype.
 
-On the master and all minions run:
+After a few minutes all the pods should be either in a "running" or "completed" state.  To verify these have come up, run the command.  
 
 .. code-block:: bash
+ 
+  kubectl get pods --all-namespaces
 
-  mkdir /EDCOP/bulk/esdata
-  chmod 777 /EDCOP/bulk/esdata
 
 
-Configuring Nodes
-=================
-An application called host-setup will need to be run in order to configure all the interfaces and neworks.  
+Accessing other Services
+========================
 
-Go to apps.<subdomain>
+EDCOP has deployed a number of internal web inferfaces automatically for you.  To view these:
 
-#. Select Deploy one
-#. Select Host-setup
-#. Select Deploy using Helm
+https://admin.<fqdn>/
+https://kubernetes.<fqdn>/
+https://loadbalancer.<fqdn>/
+https://apps.<fqdn>/
+https://ceph.<fqdn>/
 
-View the Optimization Guide for how to configure interfaces.  If this is EDCOP supported hardware this process will have been done for you.
 
-#. Enter in a name such as hostsetup
-#. Select Submit
+
+
+
+
+
 
 

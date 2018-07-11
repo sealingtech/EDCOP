@@ -154,10 +154,10 @@ metadata:
 #    ingress.kubernetes.io/auth-secret: "ingress-auth"
 spec:
   rules:
-  - host: <insert-fqdn>
+  - host: traefik.<insert-fqdn>
     http:
       paths:
-      - path: /loadbalancer
+      - path: /
         backend:
           serviceName: traefik-web-ui
           servicePort: 80

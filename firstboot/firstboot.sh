@@ -180,6 +180,7 @@ openssl x509 -req -days 3650 -in /root/edcop_wild.csr -CA /etc/kubernetes/pki/ca
 
 kubectl create secret tls --cert=/root/edcop_wild.crt --key=/root/edcop_wild.key -n kube-system edcop-wild
 kubectl create secret tls --cert=/root/edcop_wild.crt --key=/root/edcop_wild.key -n default edcop-wild
+kubectl create secret tls --cert=/root/edcop_wild.crt --key=/root/edcop_wild.key -n kubeapps edcop-wild
 
 update-ca-trust force-enable
 cp /etc/kubernetes/pki/ca.crt /etc/pki/ca-trust/source/anchors/
