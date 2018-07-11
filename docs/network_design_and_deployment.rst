@@ -69,8 +69,8 @@ Step for performing this are as follows:
 2.	Reboot the server and enter the EFI shell. 
 3.	Follow the instructions at: https://downloadcenter.intel.com/download/25854/Intel-QSFP-Configuration-Utility-EFI-
 
- a.	 For 2x40Gbps use: ``QCUW64E.EXE /NIC=3 /SET 2x40``
- b.	 For 4x10Gbps use: ``QCUW64E.EXE /NIC=3 /SET 4x10``
+ a.	 For 2x40Gbps use: ```QCUW64E.EXE /NIC=3 /SET 2x40```
+ b.	 For 4x10Gbps use: ```QCUW64E.EXE /NIC=3 /SET 4x10```
 
 
 Networks
