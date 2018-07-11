@@ -156,7 +156,8 @@ Labeling nodes
 
 NOTE: This section will need to change when more granular roles are configured
 
-Nodes must be given roles in order to take certain tasks.  For mid to large scale deployments it is best to not label the master with these and instead focus on the minions.  For single node and very small deployments it is possible to apply these to the master.  In the Helm charts there are often options to select NodeSelectors.  Log on to the master node and run the command:
+Nodes must be given roles in order to take certain tasks.  Each of these labels must be applied somwhere throughout the cluster.  For small deployments, simply label the master as all of them.  For larger deployments it is possible to selectively apply the labels to specific nodes throughout the cluster.
+
 
 .. code-block:: bash
 
@@ -166,7 +167,7 @@ Nodes must be given roles in order to take certain tasks.  For mid to large scal
   kubectl label node <name of node> infrastructure=true
   kubectl label node <name of node> ingest=true
 
-For single node deployments it is necessarry to apply all these labels to the master node.  For multiple node deployments it is possible to choose which nodes take certain roles.
+  Please see the ![node labeling guide](https://github.com/sealingtech/EDCOP/blob/master/docs/node_labels.rst).
 
 
 Verifying installation
@@ -190,6 +191,8 @@ EDCOP has deployed a number of internal web inferfaces automatically for you.  T
 - https://loadbalancer.<fqdn>/
 - https://apps.<fqdn>/
 - https://ceph.<fqdn>/
+
+Please view the ![ingress guide](https://github.com/sealingtech/EDCOP/blob/master/docs/ingress_design.rst) for more details.
 
 
 SSL Certificate Management
