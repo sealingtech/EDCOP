@@ -167,7 +167,8 @@ Nodes must be given roles in order to take certain tasks.  Each of these labels 
   kubectl label node <name of node> infrastructure=true
   kubectl label node <name of node> ingest=true
 
-  Please see the ![node labeling guide](https://github.com/sealingtech/EDCOP/blob/master/docs/node_labels.rst).
+
+Please see the node labelling guide  https://github.com/sealingtech/EDCOP/blob/master/docs/node_labels.rst
 
 
 Verifying installation
@@ -192,7 +193,7 @@ EDCOP has deployed a number of internal web inferfaces automatically for you.  T
 - https://apps.<fqdn>/
 - https://ceph.<fqdn>/
 
-Please view the ![ingress guide](https://github.com/sealingtech/EDCOP/blob/master/docs/ingress_design.rst) for more details.
+Please view the ingress guide https://github.com/sealingtech/EDCOP/blob/master/docs/ingress_design.rst for more details.
 
 
 SSL Certificate Management
