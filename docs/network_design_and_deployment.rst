@@ -157,21 +157,21 @@ Picture References:
 .. image:: images/breakout_cable_1.png
 	:align: center
 	
-.. class:: center
+.. centered:
 
 *Break-out Cable/Octopus Cable*
 
 .. image:: images/breakout_cable_2.png
 	:align: center
 	
-.. class:: center
+.. centered:
 
 *Break-out Cable/Octopus Cable*
 
 .. image:: images/dac_cable.png
 	:align: center
 	
-.. class:: center
+.. centered:
 
 *40Gbps DAC Cable*
 
