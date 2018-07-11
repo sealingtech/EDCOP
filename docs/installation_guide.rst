@@ -185,11 +185,11 @@ Accessing other Services
 
 EDCOP has deployed a number of internal web inferfaces automatically for you.  To view these:
 
-https://admin.<fqdn>/
-https://kubernetes.<fqdn>/
-https://loadbalancer.<fqdn>/
-https://apps.<fqdn>/
-https://ceph.<fqdn>/
+- https://admin.<fqdn>/
+- https://kubernetes.<fqdn>/
+- https://loadbalancer.<fqdn>/
+- https://apps.<fqdn>/
+- https://ceph.<fqdn>/
 
 
 
