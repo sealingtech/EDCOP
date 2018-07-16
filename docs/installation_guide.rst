@@ -6,9 +6,8 @@ Installing EDCOP
 Prerequisites
 =============
 In order to begin to install EDCOP the following will be needed:
-#. A workstation with Git, Docker and Make installed in order to build the image.  So far it has been tested to build with both Mac and Linux.  Docker can be installed here https://docs.docker.com/install/
 
-#. Two or more servers that support the following specs:
+#. One or more servers that support the following specs:
 
 - A processor and chipset supporting VT-X and VT-D.  These must be enabled in the BIOS.  Refer to your system manufacturer for this.  Dual processor systems are ideal due to to NUMA enhancements.  The more cores the better.
 - At least 2x nic ports supporting SR-IOV if using Passive only configuration and 4x nic ports if using inline and passive.  Currently only the Intel XL710 has been tested but others should work.  For an Intel list of supported cards see here: https://www.intel.com/content/www/us/en/support/articles/000005722/network-and-i-o/ethernet-products.html.  
@@ -39,6 +38,10 @@ EDCOP requires three DNS entries currently (Eventually only two will be required
 
 Building ISO image
 ==================
+This step is optional and will allow you to build .  Download the latest ISO at the releases tab in Github and the "Building ISO Image" step can be skipped.
+
+Note: A workstation with Git, Docker and Make installed in order to build the image.  So far it has been tested to build with both Mac and Linux.  Docker can be installed here https://docs.docker.com/install/
+
 First step will be to build an ISO to install the Master server.  To do this a Docker container has been created that will pull the latest CENTOS and EDCOP packages and build the ISO file necessary to install the master.  
 
 From the workstation run the following commands:
