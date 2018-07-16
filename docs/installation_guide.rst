@@ -44,7 +44,7 @@ It is necessarry to be able to resolve these entries from both inside the cluste
 
 Building ISO image
 ==================
-Note- this step can be skipped if you don't want to build by hand.  Simply download the latest ISO from the realeases section.
+Note- This step can be skipped if you don't want to build by hand.  We reccomend you simply download the latest ISO from the releases section https://github.com/sealingtech/EDCOP/releases.
 
 You will need a workstation with Git, Docker and Make installed in order to build the image.  So far it has been tested to build with both Mac and Linux.  Docker can be installed here https://docs.docker.com/install/
 
