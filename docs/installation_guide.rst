@@ -5,7 +5,6 @@ Installing EDCOP
 Prerequisites
 =============
 In order to begin to install EDCOP the following will be needed:
-#. A workstation with Git, Docker and Make installed in order to build the image.  So far it has been tested to build with both Mac and Linux.  Docker can be installed here https://docs.docker.com/install/
 
 #. Two or more servers that support the following specs:
 
@@ -43,6 +42,10 @@ It is necessarry to be able to resolve these entries from both inside the cluste
 
 Building ISO image
 ==================
+Note- this step can be skipped if you don't want to build by hand.  Simply download the latest ISO from the realeases section.
+
+You will need a workstation with Git, Docker and Make installed in order to build the image.  So far it has been tested to build with both Mac and Linux.  Docker can be installed here https://docs.docker.com/install/
+
 First step will be to build an ISO to install the Master server.  To do this a Docker container has been created that will pull the latest CENTOS and EDCOP packages and build the ISO file necessary to install the master.  
 
 From the workstation run the following commands:
