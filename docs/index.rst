@@ -24,7 +24,7 @@ Welcome to EDCOP's documentation!
    :maxdepth: 2
    :caption: Deploying Capabilities:
 
-
+   syslog_design
 
 Indices and tables
 ==================
