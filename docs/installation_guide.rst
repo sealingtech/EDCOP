@@ -23,7 +23,9 @@ Network configuration
 EDCOP requires a specific network configuration to work properly.  A switch will need to be configured with the following VLANS:
 
 - One vlan to support PXE booting.  This will be tied to all systems
-- One vlan to support the Calico Overlay network which will allow the containers in the Kubernetes cluster to communicate.  The master will be connected to this VLAN over a LAGG connection and the minions will have a single port connected to this this.
+- One vlan to support the Calico Overlay network which will allow the containers in the Kubernetes cluster to communicate.  The master will optionally be connected to this VLAN over a LAGG connection and the minions will have a single port connected to this this.
+
+For supporting network sensors (Bro, Suricata, Moloch, etc), additional network interfaces using SR-IOV will be required.  Two NICs for inline and one additional for passive.  Passive and inline can be used together and will require three total interface.
 
 .. image:: images/network_configuration.png
 
