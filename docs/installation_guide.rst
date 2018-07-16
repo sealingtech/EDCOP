@@ -12,6 +12,7 @@ In order to begin to install EDCOP the following will be needed:
 - At least 2x nic ports supporting SR-IOV if using Passive only configuration and 4x nic ports if using inline and passive.  Currently only the Intel XL710 has been tested but others should work.  For an Intel list of supported cards see here: https://www.intel.com/content/www/us/en/support/articles/000005722/network-and-i-o/ethernet-products.html.  
 - At least one more nic port for building the system, 1 gbps is fine for this.
 - At least two disk volumes, one will install the OS and the other will install additional storage for log analysis and other applications
+- Reccomend 16GB of Ram per physical host
 - A USB thumb drive of 8 GB or more
 - Servers should be identical configurations if possible, the Intel network card should be plugged into the exact same PCI-E slot.
 - Servers must be set to UEFI in the BIOS
@@ -105,7 +106,7 @@ You will be asked if you want to select the default network configuration, gener
 #. Enter in the last octet of the starting IP (For example, if your IP address was 10.50.50.10 and you enter in 100 here then your starting IP will be 10.50.50.100)
 #. Enter in the last octet of the ending IP
 #. Enter Y to accept defaults for network_configuration
-#. You will be presented with the disks available on your system.  There will be a number by each of these, Enter in the number of the disk corresponding to the disk you would like to install the OS on
+#. You will be presented with the disks available on your system.  There will be a number by each of these, Enter in the number of the disk corresponding to the disk you would like to install the OS on as well as assign storage.  These drives can be the same for each option or they can be different.
 #. Enter in the number you would like to install the rest of the data to
 
 After this process is completed, the master will reboot. You can logon with root and the password open.local.box
