@@ -119,7 +119,7 @@ SSH/Terminal into EDCOP master -> Get name of Logstash pod -> Check logs for Log
 
 To find the names of your pods, run the following on the master server:
 
-.. code-block::
+.. code-block:: bash
 
   [root@master ~]# kubectl get pods
   NAME                                           READY     STATUS    RESTARTS   AGE
@@ -136,7 +136,7 @@ To find the names of your pods, run the following on the master server:
 To verify logstash is receiving events, choose the name of a Logstash pod and use the command below. 
 You should be receiving logs similar to this if Logstash is receiving events.
 
-.. code-block::
+.. code-block:: bash
 
   [root@master ~]# kubectl logs default-ingest-ingest-logstash-29jnj
   {
@@ -156,7 +156,7 @@ You should be receiving logs similar to this if Logstash is receiving events.
 Grok parse errors are very common depending on the input source of your syslogs. 
 You can find other Logstash pipeline configs that better match the format of your logs online. 
 
-.. code-block::
+.. code-block:: bash
 
   [root@master ~]# kubectl logs default-ingest-ingest-logstash-29jnj
   {
