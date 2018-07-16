@@ -17,6 +17,8 @@ Welcome to EDCOP's documentation!
 .. toctree::
    :maxdepth: 2
    :caption: Architecture:
+   
+   network_design_and_deployment
 
 .. toctree::
    :maxdepth: 2
