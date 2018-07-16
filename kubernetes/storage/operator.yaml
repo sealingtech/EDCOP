@@ -201,6 +201,17 @@ rules:
   - list
   - watch
 - apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - update
+  - delete   
+- apiGroups:
   - ceph.rook.io
   resources:
   - "*"
@@ -278,7 +289,7 @@ spec:
       serviceAccountName: rook-ceph-system
       containers:
       - name: rook-ceph-operator
-        image: rook/ceph:master
+        image: gcr.io/edcop-public/rook:v0.7.0-264.gdff99d5
         args: ["ceph", "operator"]
         volumeMounts:
         - mountPath: /var/lib/rook
