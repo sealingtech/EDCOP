@@ -29,5 +29,5 @@ EDCOP is designed to work in a number of deployment scenarios including a single
 Installation takes place by building a "master" node which is then used to build more "minion" nodes.  Once this process is completed then it is possible to deploy tools in a scalable fashion.  
 
 
-Install: https://github.com/sealingtech/EDCOP/blob/master/docs/installation_guide.rst
+Install Guide: https://github.com/sealingtech/EDCOP/blob/master/docs/installation_guide.rst
 
