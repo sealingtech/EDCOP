@@ -1,4 +1,3 @@
-
 ################
 Installing EDCOP
 ################
@@ -6,8 +5,9 @@ Installing EDCOP
 Prerequisites
 =============
 In order to begin to install EDCOP the following will be needed:
+#. A workstation with Git, Docker and Make installed in order to build the image.  So far it has been tested to build with both Mac and Linux.  Docker can be installed here https://docs.docker.com/install/
 
-#. One or more servers that support the following specs:
+#. Two or more servers that support the following specs:
 
 - A processor and chipset supporting VT-X and VT-D.  These must be enabled in the BIOS.  Refer to your system manufacturer for this.  Dual processor systems are ideal due to to NUMA enhancements.  The more cores the better.
 - At least 2x nic ports supporting SR-IOV if using Passive only configuration and 4x nic ports if using inline and passive.  Currently only the Intel XL710 has been tested but others should work.  For an Intel list of supported cards see here: https://www.intel.com/content/www/us/en/support/articles/000005722/network-and-i-o/ethernet-products.html.  
@@ -29,19 +29,20 @@ EDCOP requires a specific network configuration to work properly.  A switch will
 .. image:: images/network_configuration.png
 
 DNS Requirements
-EDCOP requires three DNS entries currently (Eventually only two will be required).  It is recommended to make a seperate sub-domain for the entire cluster.  All servers in the cluster must be able to resolve this as well as the workstations which are accessing services inside of the cluster.
+================
+EDCOP requires two DNS entries. When you setup the master you will be asked for the fully qualified domain name (FQDN).  The same domain name must be entered into the DNS server pointing to the master system.  In addition, there must be a wild card subdomain under that same FQDN.  The wild card DNS entry can be pointed either at the master as well or it can be load balanced by an external load balancer to the master and all minions on 80 and 443.  Load balancing is optional
 
-- <subdomain>:       This will point to the network address of the master server
-- apps.<subdomain>:  This will also point to the master and be used for the EDCOP marketplace.
-- minion addresses:  This can be setup after the  minions are built.  It is reccomended to load balance traffic to  the minions if possible.  In this case, a VIP would be created on a load balancer and then forward requests down to the minions in a round robin fashion.
+Example:
+
+You name the master, master.edcop.io and give it the IP of 192.168.1.10.  You create a wild card subdomain of *.master.edcop.io of 192.168.1.10.
+
+It is necessarry to be able to resolve these entries from both inside the cluster as well as any clients accessing the cluster.  You must access the cluster by using the domain name and not by IP.
+
+
 
 
 Building ISO image
 ==================
-This step is optional and will allow you to build .  Download the latest ISO at the releases tab in Github and the "Building ISO Image" step can be skipped.
-
-Note: A workstation with Git, Docker and Make installed in order to build the image.  So far it has been tested to build with both Mac and Linux.  Docker can be installed here https://docs.docker.com/install/
-
 First step will be to build an ISO to install the Master server.  To do this a Docker container has been created that will pull the latest CENTOS and EDCOP packages and build the ISO file necessary to install the master.  
 
 From the workstation run the following commands:
@@ -126,20 +127,21 @@ Accessing Cockpit
 
 If you have configured the DNS entry correctly, then Cockpit should be available at this point.  Open a web browser and go to:
 
-https://<hostname of master>/admin/
+https://admin.<fqdn>/
 
-(Note that the trailing slash is important)
 
 Logon with root as the user and the password you set earlier
 
 Building the Minions
 ====================
 
+Once the master is successfully running, minions can be PXE booted off of the main system.  This is not needed on single node deployments.
+
 Boot off of the PXE Interface in startup (see system manual for this process)
 
 If the PXE is configured correctly, an Install the Expandable DCO Platform (EDCOP) option will be displayed, select Enter
 
-After the installation process is completed and the system reboots.  Access cockpit and select Cluster -> Nodes and your new node should appear here after a bit.
+After the installation process is completed and the system reboots.  Access cockpit and select Cluster -> Nodes and your new node should appear here after a bit and the status should be set to ready.
 
 From the command line, it is also possible to do this from the command line on the master using:
 
@@ -153,39 +155,58 @@ Labeling nodes
 
 NOTE: This section will need to change when more granular roles are configured
 
-Nodes must be given roles in order to take certain tasks.  In the Helm charts there are often options to select NodeSelectors.  Log on to the master node and run the command:
+Nodes must be given roles in order to take certain tasks.  Each of these labels must be applied somwhere throughout the cluster.  For small deployments, simply label the master as all of them.  For larger deployments it is possible to selectively apply the labels to specific nodes throughout the cluster.
+
 
 .. code-block:: bash
 
-  kubectl label node <name of minion node> nodetype=worker
+  kubectl label node <name of node> nodetype=worker
+  kubectl label node <name of node> sensor=true
+  kubectl label node <name of node> data=true
+  kubectl label node <name of node> infrastructure=true
+  kubectl label node <name of node> ingest=true
 
-This process will be repeated for each node.
 
-Datastorage workaround
+Please see the node labelling guide  https://github.com/sealingtech/EDCOP/blob/master/docs/node_labels.rst
+
+
+Verifying installation
 ======================
-This is temporary fix in the prototype.
 
-On the master and all minions run:
+After a few minutes all the pods should be either in a "running" or "completed" state.  To verify these have come up, run the command.  
 
 .. code-block:: bash
-
-  mkdir /EDCOP/bulk/esdata
-  chmod 777 /EDCOP/bulk/esdata
-
-
-Configuring Nodes
-=================
-An application called host-setup will need to be run in order to configure all the interfaces and neworks.  
-
-Go to apps.<subdomain>
-
-#. Select Deploy one
-#. Select Host-setup
-#. Select Deploy using Helm
-
-View the Optimization Guide for how to configure interfaces.  If this is EDCOP supported hardware this process will have been done for you.
-
-#. Enter in a name such as hostsetup
-#. Select Submit
+ 
+  kubectl get pods --all-namespaces
 
 
+
+Accessing other Services
+========================
+
+EDCOP has deployed a number of internal web inferfaces automatically for you.  To view these:
+
+- https://admin.<fqdn>/
+- https://kubernetes.<fqdn>/
+- https://loadbalancer.<fqdn>/
+- https://apps.<fqdn>/
+- https://ceph.<fqdn>/
+
+Please view the ingress guide https://github.com/sealingtech/EDCOP/blob/master/docs/ingress_design.rst for more details.
+
+
+SSL Certificate Management
+==========================
+
+By default EDCOP will create a wild card certificate that is used by all domains.  This certificate has been signed by an auto-generated Certificate Authority (CA) that is used for internal CA operations.  This CA is generally not trusted by your browser.  To make SSL error messages go away a user can trust the internal kubernetes certificate authority.  
+
+The certificate is stored in /root/ca.cer and can be added to user's internal Root CA store.
+
+For windows follow this guide:
+https://blogs.technet.microsoft.com/sbs/2008/05/08/installing-a-self-signed-certificate-as-a-trusted-root-ca-in-windows-vista/
+
+
+Deploying Capabilities
+======================
+
+To deploy additional tools users can go to apps.<fqdn> and select the applications to they want to deploy.  Selecting "Available Capabilities" will bring up a number of charts that can then be deployed.  Each chart will have built in instructions.  Many of these charts values are set to defaults that will work with smaller deployments but more planning is required for larger deployments to get more performance out of the tools.
