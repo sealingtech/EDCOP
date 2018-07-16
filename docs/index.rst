@@ -19,12 +19,13 @@ Welcome to EDCOP's documentation!
    :caption: Architecture:
    
    network_design_and_deployment
+   node_labels
 
 .. toctree::
    :maxdepth: 2
    :caption: Deploying Capabilities:
 
-
+   syslog_design
 
 Indices and tables
 ==================
