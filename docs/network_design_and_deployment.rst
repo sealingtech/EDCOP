@@ -4,38 +4,6 @@ EDCOP Network Design and Deployment
 
 .. contents::
 	:backlinks: none
-	
-
-
-Bill of Materials
-=================
-
-+----------+---------------------------------+---------------------------------------------------------------+
-| Quantity | Product                         | Label                                                         |
-+==========+=================================+===============================================================+
-| 1        | Cisco UCS C240-M5               | - 2 CPUS - Intel Xeon 4110 2.10GHz (8 cores, 16 threads each) |
-|          |                                 | - 196 GB of 2400 MHz RAM                                      |
-|          |                                 | - 1.7 TB x 10 drives                                          |
-|          |                                 | - Nodes (servers)                                             |
-+----------+---------------------------------+---------------------------------------------------------------+
-| 1        | Arista 7050QX-32S               | Commodity 10/40 Gbps Switch                                   |
-+----------+---------------------------------+---------------------------------------------------------------+
-| 1        | Juniper EX-3200                 | Commodity 1/10 Gbps Switch                                    |
-+----------+---------------------------------+---------------------------------------------------------------+
-| 1        | 10Gtek CAB-QSFP/QSFP-P3M        | 40GBase DAC                                                   |
-+----------+---------------------------------+---------------------------------------------------------------+
-| 5        | 10Gtek CAB-QSFP/4SFP-P3M        | 40Gb to (4) 10Gbps “octopus” or “break-out” cables            |
-+----------+---------------------------------+---------------------------------------------------------------+
-| 6        | CAT-6 Ethernet Cables           |                                                               |
-+----------+---------------------------------+---------------------------------------------------------------+
-| 1        | Gigamon Gigavue-HC2 (GVS-HC2A1) | Cards: SMT-HC0-X16, BPS-HC0-D25A4G (Inline/Passive TAP)       |
-+----------+---------------------------------+---------------------------------------------------------------+
-| 6        | Intel XL710 40Gbps NIC          |                                                               |
-+----------+---------------------------------+---------------------------------------------------------------+
-
-The Bill of Materials is used to build our reference architecture. Some assumed materials are:
- - An upstream router to provide gateway and internet connectivity.
- - Server rack with space and redundant power to house all the components.
  
  
 Installing the Hardware
@@ -72,24 +40,16 @@ Step for performing this are as follows:
 	- For 2x40Gbps use: ``QCUW64E.EXE /NIC=3 /SET 2x40``
 	- For 4x10Gbps use: ``QCUW64E.EXE /NIC=3 /SET 4x10``
 
-
-Networks
-========
-
-.. image:: images/connectivity.png
-	:align: center
-
-When all of the components are cabled together it builds a couple small networks. There is a small 1Gbps network used for PXE booting the minions referred to as the “PXE network” (figure 1). A 10/40Gbps network for connecting the minions to the Arista switch called the “cluster network” (figure 2) while only the Master has a 40Gbps connection. No network traffic traverses either of those links, instead, only log events and sensor data traverses the 10/40Gbps backend network. 
-
-.. image:: images/edcop_network.png
-	:align: center
+Required Network Configuration
+==============================
+EDCOP requires a PXE network as well as a cluster network.
 
 PXE Network
 -----------
 
 The PXE Network is used by the minions on first boot so they can download the provisioning image from the Master. The PXE Network is not used for management throughout EDCOP.
 
-The management interface from each EDCOP node needs to be connected to a single broadcast domain. For cabling reference figure 1. This can be accomplished by connecting the 1Gb (typically) management interface from all the nodes to a single 1Gbps switch. Best practice is to create a new VLAN on the switch with the description or name “EDCOP-PXE”, and configure all ports connecting to the nodes to pass untagged traffic for that VLAN or as access ports in the specified VLAN.
+The management interface from each EDCOP node needs to be connected to a single broadcast domain. For cabling reference figure 1. This can be accomplished by connecting the 1Gb (typically) management interface from all the nodes to a single 1Gbps switch. Best practice is to create a new VLAN on the switch with the description or name “EDCOP-PXE”, and configure all ports connecting to the nodes to pass untagged traffic for that VLAN or as access ports in the specified VLAN.  This network does not need to be routable.
 
 Once the Master is manually configured, it stands up its own DHCP server. As the minions boot they will request a DHCP address from the Master and begin to download the provisioning image. 
 
@@ -98,20 +58,20 @@ Cluster Network
 
 The Cluster Network is used for Node to Node communication. It is used to transmit and receive log events and sensor data, generated by the pods on each node back to the Master node. The TAP’d network traffic DOES NOT traverse these links. 
 
-The Minions each connect to the 40/10Gbps switch using the #1 link from the break-out cable from the above Bill of Materials. The Master uses a 40Gbps DAC connection to a 40Gbps interface on the switch.
-
-.. image:: images/backend.png
-	:align: center
 
 All the Cluster Network connections from the nodes to the switch should all be in a single VLAN. Best practice is to create a new VLAN on the 40/10Gbps switch with the name or description “EDCOP-CLUSTER” and configure all the Node facing interfaces as access ports or pass untagged traffic for the newly created VLAN.
 
 The EDCOP nodes will require external connectivity to fetch package updates and code/config deltas. You’ll need to configure an uplink to a router or gateway off of the 40/10Gbps switch so each of the nodes can reach-out to the internet or an externally hosted library. This will vary from installation to installation but a simple NAT gateway/boundary will work fine. 
+
+This network must have access to a DNS server which resolves the Internet.
 
 **Please have the upstream gateway defined/provisioned before completing the ‘first-boot’ process on the Master as it will do a network connectivity check before continuing.**
 
 
 Network TAP Connections
 =======================
+
+If you are planning on using network sensors either inline or passive a network tap is required.  You should consider a number of variables such as availability required
 
 The tapping infrastructure is an integral part of our architecture. Currently every Minion has 3 connections to the TAP. Each connection uses one of the 3 remaining links from the break-out cable. The TAP itself must have ingress and egress interfaces available for the traffic you require visibility. 
 
@@ -121,6 +81,96 @@ The tapping infrastructure is an integral part of our architecture. Currently ev
 As traffic ingresses the TAP from an untrusted/outside network it is load balanced across the Minions using session based persistence. The traffic traverses the tools/sensors on the Minions and is forwarded out towards the Gigamon. As the traffic passes through the Gigamon, to be forwarded towards your inside network, the traffic is TAP’d and sent to the Minions on the 3rd link where the traffic is observed by the passive tools. 
 
 .. image:: images/tap_traffic_2.png
+	:align: center
+
+
+Sample Deployment Scenarios
+===========================
+
+This document will detail some sample network deployment scenarios that are possible using various configurations.
+
+Minimal Network without sensors
+-------------------------
+
+This configuration is useful in scenarios where it is not desired to host network scenarios processing traffic on the cluster.  This could be used to primarily gather host logs or collect logs from another EDCOP cluster that are forward deployed to the edge.  This design is simple, and can easily be done in a virtual environment if desired.  In this configuration only two network interfaces is required.
+
+.. image:: images/network_configs_simple_nosensors.png
+	:align: center
+
+Passive sensors without Load Balancing
+--------------------------------------
+
+It is possible to deploy EDCOP in a passive mode without a load balancer.  The traffic could come from a network mirror or SPAN port off of a switch or a simple network tap.  It is possible to deploy multiple sensors with each sensor receiving traffic from different parts of the network though keep in mind this traffic isn't load balanced so if a single portion of the network is producing too much traffic then that particular sensor will be overloaded.
+
+.. image:: images/network_configs_passive_nolb.png
+	:align: center
+
+Inline sensors without Load Balancing
+-------------------------------------
+
+It is possible to deploy EDCOP in a inline mode without a load balancer.  This mode is generally not reccomended due to the fact that if there is any issue with the sensor all traffic will stop.  Upgrades to the software will also interrupt traffic.  If the single sensor is overwhelmed with traffic, it would also cause network connectivity issues.   This could be useful for testing or smaller networks.  It is possible to have multiple inline sensors throughout the network.  Suricata is configured for a layer two mode and will not route.
+
+.. image:: images/network_configs_inline_nolb.png
+	:align: center
+
+Inline and Passive with Load Balancing
+--------------------------------------
+
+This configuration is the most complex as it adds a load balancer to the mix.  With this configuration it is possible to horizontally scale to meet the needs of the network's bandwidth.  It is possible to use inline, passive or both with the use of a load balancer.  At this time only a single inline tool is supported  Each minion labelled as a sensor should be connected to the load balancer.  Some considerations with load balancing:
+
+- Both passive and inline must be symmetric. This means that a single TCP session will always be sent down the same path
+- Suricata passes data inline using Layer 2, it will not route
+- When using inline you should plan for failures of paths.  With rolling updates (such as deploying new versions of software) one path will be taken down at a time.  The load balancer should implement some form of heart beats to verify whether paths are up or down.  During updates some of the logs may be degraded due to the paths getting sent down new paths but traffic should continue to flow.
+- It is often possible to fail the load balancer closed (where traffic stops completely) or open (where all traffic continues) when all paths are made invalid due to total loss of the cluster or misconfiguration.  Take this into consideration due to operational needs when architectuing the network.
+
+.. image:: images/network_configs_complex_lb.png
+	:align: center
+
+
+
+
+Sample Bill of Materials for Large Deployments
+==============================================
+
+This is a sample bill of materials for large scaled deployments.  EDCOP should work with other configurations, but this was meant to give an idea of what a large scale deployment can look like.
+
++----------+---------------------------------+---------------------------------------------------------------+
+| Quantity | Product                         | Label                                                         |
++==========+=================================+===============================================================+
+| 6        | Cisco UCS C240-M5               | - 2 CPUS - Intel Xeon 4110 2.10GHz (8 cores, 16 threads each) |
+|          |                                 | - 196 GB of 2400 MHz RAM                                      |
+|          |                                 | - 1.7 TB x 10 drives                                          |
+|          |                                 | - Nodes (servers)                                             |
++----------+---------------------------------+---------------------------------------------------------------+
+| 1        | Arista 7050QX-32S               | Commodity 10/40 Gbps Switch                                   |
++----------+---------------------------------+---------------------------------------------------------------+
+| 1        | Juniper EX-3200                 | Commodity 1/10 Gbps Switch                                    |
++----------+---------------------------------+---------------------------------------------------------------+
+| 1        | 10Gtek CAB-QSFP/QSFP-P3M        | 40GBase DAC                                                   |
++----------+---------------------------------+---------------------------------------------------------------+
+| 5        | 10Gtek CAB-QSFP/4SFP-P3M        | 40Gb to (4) 10Gbps “octopus” or “break-out” cables            |
++----------+---------------------------------+---------------------------------------------------------------+
+| 6        | CAT-6 Ethernet Cables           |                                                               |
++----------+---------------------------------+---------------------------------------------------------------+
+| 1        | Gigamon Gigavue-HC2 (GVS-HC2A1) | Cards: SMT-HC0-X16, BPS-HC0-D25A4G (Inline/Passive TAP)       |
++----------+---------------------------------+---------------------------------------------------------------+
+| 6        | Intel XL710 40Gbps NIC          |                                                               |
++----------+---------------------------------+---------------------------------------------------------------+
+
+The Bill of Materials is used to build our reference architecture. Some assumed materials are:
+ - An upstream router to provide gateway and internet connectivity.
+ - Server rack with space and redundant power to house all the components.
+
+
+ Networks
+---------
+
+.. image:: images/connectivity.png
+	:align: center
+
+When all of the components are cabled together it builds a couple small networks. There is a small 1Gbps network used for PXE booting the minions referred to as the “PXE network” (figure 1). A 10/40Gbps network for connecting the minions to the Arista switch called the “cluster network” (figure 2) while only the Master has a 40Gbps connection. No network traffic traverses either of those links, instead, only log events and sensor data traverses the 10/40Gbps backend network. 
+
+.. image:: images/edcop_network.png
 	:align: center
 	
 
@@ -154,7 +204,7 @@ Appendix
 
 Picture References:
 
-.. image:: images/breakout_cable_1.png
+.. image:: images/breakout_cable_1.png 
 	:align: center
 	
 .. centered:

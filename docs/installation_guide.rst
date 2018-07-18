@@ -9,8 +9,8 @@ In order to begin to install EDCOP the following will be needed:
 #. Two or more servers that support the following specs:
 
 - A processor and chipset supporting VT-X and VT-D.  These must be enabled in the BIOS.  Refer to your system manufacturer for this.  Dual processor systems are ideal due to to NUMA enhancements.  The more cores the better.
-- At least 2x nic ports supporting SR-IOV if using Passive only configuration and 4x nic ports if using inline and passive.  Currently only the Intel XL710 has been tested but others should work.  For an Intel list of supported cards see here: https://www.intel.com/content/www/us/en/support/articles/000005722/network-and-i-o/ethernet-products.html.  
-- At least one more nic port for building the system, 1 gbps is fine for this.
+- Two network interfaces, one for the PXE network that will be used to build minions and another interface for the internal and external network traffic using Calico.  PXE network should be completely isolated and non-routable.  The Internal network must be connected to the Internet at this time.  Isolated environments will be possible with some work to bring externally hosted resources into the network.
+- If you are planning on implementing network sensors such as Suricata or Bro, at least 2x nic ports supporting SR-IOV if using Passive only configuration and 4x nic ports if using inline and passive.  Currently only the Intel XL710 has been tested but others should work.  For an Intel list of supported cards see here: https://www.intel.com/content/www/us/en/support/articles/000005722/network-and-i-o/ethernet-products.html.  
 - At least two disk volumes, one will install the OS and the other will install additional storage for log analysis and other applications
 - Reccomend 16GB of Ram per physical host
 - A USB thumb drive of 8 GB or more
@@ -20,15 +20,16 @@ In order to begin to install EDCOP the following will be needed:
 A master server will be chosen and be given a slightly different network configuration than all minions.  The master will be installed using a USB thumb drive.  The minons will be installed using PXE off of the master server.
 
 Network configuration
+=====================
 
 EDCOP requires a specific network configuration to work properly.  A switch will need to be configured with the following VLANS:
 
-- One vlan to support PXE booting.  This will be tied to all systems
-- One vlan to support the Calico Overlay network which will allow the containers in the Kubernetes cluster to communicate.  The master will optionally be connected to this VLAN over a LAGG connection and the minions will have a single port connected to this this.
+- One vlan to support PXE booting.  This will be tied to all systems and
+- One vlan to support the Calico Overlay network which will allow the containers in the Kubernetes cluster to communicate.  The master will optionally be connected to this VLAN over a LAGG connection and the minions will have a single port connected to this this.  This VLAN must have a route to your users as well as the Internet.
 
-For supporting network sensors (Bro, Suricata, Moloch, etc), additional network interfaces using SR-IOV will be required.  Two NICs for inline and one additional for passive.  Passive and inline can be used together and will require three total interface.
+For supporting network sensors (Bro, Suricata, Moloch, etc), additional network interfaces using SR-IOV will be required.  Two NICs for inline and one additional for passive.  Passive and inline can be used together and will require three total interfaces.
 
-.. image:: images/network_configuration.png
+For network deployment options see here https://github.com/sealingtech/EDCOP/blob/master/docs/network_deployment.rst
 
 DNS Requirements
 ================
@@ -41,6 +42,18 @@ You name the master, master.edcop.io and give it the IP of 192.168.1.10.  You cr
 It is necessarry to be able to resolve these entries from both inside the cluster as well as any clients accessing the cluster.  You must access the cluster by using the domain name and not by IP.
 
 
+What if I don't have a DNS server?
+==================================
+It is still possible to make it work, just not ideal.  It is possible to add entries to your /etc/hosts or on Windows (https://support.rackspace.com/how-to/modify-your-hosts-file).  Unfortunately the hosts file doesn't work with wild cards, so it will be necessary to add multiple entries.
+
+Currently there are five deployed with EDCOP:
+- https://admin.<fqdn>/
+- https://kubernetes.<fqdn>/
+- https://loadbalancer.<fqdn>/
+- https://apps.<fqdn>/
+- https://ceph.<fqdn>/
+
+These will need to be pointed at one of the servers (usually the master).  When adding new capabilities that have an Ingress (for example Kibana) you will need to add a new entry in order to deploy this capability.
 
 
 Building ISO image
@@ -93,9 +106,9 @@ NOTE: This procedure will ERASE everything on the master node and the minion nod
 You will be asked if you want to select the default network configuration, generally you will need to select "N" at this point.
 
 #. Enter the hostname, this must be an FQDN and match the DNS record entered earlier.
-#. You will be printed an interface list, select Y to team the interfaces for the master
-#. Enter in the name of the interfaces seperated by commas for all interfaces included in the LAGG
-#. Select "N" for DHCP
+#. You will be printed an interface list, select Y to team the interfaces if you plan on implemeting LAGG or N if you only are going to use a single interface for the host.  (Note at this time you must use a CAPITAL LETTER)
+#. Enter in the name of the interface you want to use for the main network if you selected N on the teaming question.  If you answered yes enter in the name of the interfaces seperated by commas for all interfaces included in the LAGG
+#. Select if your network uses DHCP
 #. Enter in the IP address to assign the master (Note, this must match the IP given to the DNS entry)
 #. Enter the netmask
 #. Enter the gateway
@@ -158,8 +171,6 @@ From the command line, it is also possible to do this from the command line on t
 
 Labeling nodes
 ==============
-
-NOTE: This section will need to change when more granular roles are configured
 
 Nodes must be given roles in order to take certain tasks.  Each of these labels must be applied somwhere throughout the cluster.  For small deployments, simply label the master as all of them.  For larger deployments it is possible to selectively apply the labels to specific nodes throughout the cluster.
 
