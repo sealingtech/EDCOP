@@ -16,7 +16,7 @@ selinux --disabled
 reboot
 
 network  --device=lo --hostname=minion-{{ range(1,65536) | random }}
-network --bootproto=dhcp --device={{ data.network_cluster.interface }} --activate
+network --bootproto=dhcp --device={{ data.network_cluster.interface[0] }} --activate
 network --bootproto=dhcp --device={{ data.network_pxe.interface }} --nodefroute
 
 # Temorarily disable firewall while builing
