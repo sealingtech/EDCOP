@@ -29,7 +29,7 @@ EDCOP requires a specific network configuration to work properly.  A switch will
 
 For supporting network sensors (Bro, Suricata, Moloch, etc), additional network interfaces using SR-IOV will be required.  Two NICs for inline and one additional for passive.  Passive and inline can be used together and will require three total interfaces.
 
-For network deployment options see here https://github.com/sealingtech/EDCOP/blob/master/docs/network_deployment.rst
+For network deployment options see here https://github.com/sealingtech/EDCOP/blob/master/docs/network_design_and_deployment.rst
 
 DNS Requirements
 ================
@@ -53,7 +53,7 @@ Currently there are five deployed with EDCOP:
 - https://apps.<fqdn>/
 - https://ceph.<fqdn>/
 
-These will need to be pointed at one of the servers (usually the master).  When adding new capabilities that have an Ingress (for example Kibana) you will need to add a new entry in order to deploy this capability.
+These will need to be pointed at one of the servers (usually the master).  When adding new capabilities that have an Ingress (for example Kibana) you will need to add a new entry to your hosts file in order to deploy this capability.
 
 
 Building ISO image
