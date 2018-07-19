@@ -12,7 +12,8 @@ In order to begin to install EDCOP the following will be needed:
 - Two network interfaces, one for the PXE network that will be used to build minions and another interface for the internal and external network traffic using Calico.  PXE network should be completely isolated and non-routable.  The Internal network must be connected to the Internet at this time.  Isolated environments will be possible with some work to bring externally hosted resources into the network.
 - If you are planning on implementing network sensors such as Suricata or Bro, at least 2x nic ports supporting SR-IOV if using Passive only configuration and 4x nic ports if using inline and passive.  Currently only the Intel XL710 has been tested but others should work.  For an Intel list of supported cards see here: https://www.intel.com/content/www/us/en/support/articles/000005722/network-and-i-o/ethernet-products.html.  
 - At least two disk volumes, one will install the OS and the other will install additional storage for log analysis and other applications
-- Reccomend 16GB of Ram per physical host
+- Minimum of 16GB of Ram per physical host.  Depending on applications deployed this number will need to be a lot higher.
+- Minimum two cores per host, reccomend at least four.
 - A USB thumb drive of 8 GB or more
 - Servers should be identical configurations if possible, the Intel network card should be plugged into the exact same PCI-E slot.
 - Servers must be set to UEFI in the BIOS
