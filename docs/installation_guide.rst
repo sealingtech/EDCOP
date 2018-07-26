@@ -233,6 +233,7 @@ To deploy additional tools users can go to apps.<fqdn> and select the applicatio
 For example with kibana:
 
 .. code-block:: bash
+
   ingress:
     #Enter the subdomain and the FQDN that will be used to access Kibana
     host: kibana.edcop.io  
@@ -252,6 +253,7 @@ EDCOP utiilizes the shared storage solution Rook (https://rook.io).  Because of 
 From the master server, get a list of all minions and then run the kubectl drain command below for the minion you want to shut down.  If this procedure is not followed hosts will not power down properly and data loss may occur.
 
 .. code-block:: bash
+
   kubectl get minions
   kubectl drain <each minion, one at a time if shutting down more than one> --ignore-daemonsets --delete-local-data
   kubectl drain <the master goes last if you are shutting down the master as well> --ignore-daemonsets --delete-local-data
@@ -261,6 +263,7 @@ Once this procedure is done it is safe to run shutdown now to power down each ho
 When powering up the hosts, services will not start until the host is "uncordoned".  To do this, uncordon the master first, then each of the minions.
 
 .. code-block:: bash
+
   kubectl uncordon <name of master>
   kubectl uncordon <name of each minion>
   
