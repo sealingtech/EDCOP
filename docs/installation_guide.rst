@@ -12,7 +12,8 @@ In order to begin to install EDCOP the following will be needed:
 - Two network interfaces, one for the PXE network that will be used to build minions and another interface for the internal and external network traffic using Calico.  PXE network should be completely isolated and non-routable.  The Internal network must be connected to the Internet at this time.  Isolated environments will be possible with some work to bring externally hosted resources into the network.
 - If you are planning on implementing network sensors such as Suricata or Bro, at least 2x nic ports supporting SR-IOV if using Passive only configuration and 4x nic ports if using inline and passive.  Currently only the Intel XL710 has been tested but others should work.  For an Intel list of supported cards see here: https://www.intel.com/content/www/us/en/support/articles/000005722/network-and-i-o/ethernet-products.html.  
 - At least two disk volumes, one will install the OS and the other will install additional storage for log analysis and other applications
-- Minimum of 16GB of Ram per physical host.  Depending on applications deployed this number will need to be a lot higher.
+- Minimum two cores per host.
+- Minimum of 16GB of Ram per physical host.  Depending on applications deployed this number will need to be a lot higher.  16 GB will get you the Kubernetes cluster, elasticsearch and one or two tools.  More memory is always better.
 - Minimum two cores per host, recommend at least four.
 - A USB thumb drive of 8 GB or more
 - Servers should be identical configurations if possible, the Intel network card should be plugged into the exact same PCI-E slot.
@@ -227,4 +228,18 @@ https://blogs.technet.microsoft.com/sbs/2008/05/08/installing-a-self-signed-cert
 Deploying Capabilities
 ======================
 
-To deploy additional tools users can go to apps.<fqdn> and select the applications to they want to deploy.  Selecting "Available Capabilities" will bring up a number of charts that can then be deployed.  Each chart will have built in instructions.  Many of these charts values are set to defaults that will work with smaller deployments but more planning is required for larger deployments to get more performance out of the tools.
+To deploy additional tools users can go to apps.<fqdn> and select the applications to they want to deploy.  Selecting "Available Capabilities" will bring up a number of charts that can then be deployed.  Each chart will have built in instructions.  Many of these charts values are set to defaults that will work with smaller deployments but more planning is required for larger deployments to get more performance out of the tools.  When you deploy capabilities with a web front end, make sure that you change the ingress host option.  
+
+For example with kibana:
+
+.. code-block:: bash
+  ingress:
+    #Enter the subdomain and the FQDN that will be used to access Kibana
+    host: kibana.edcop.io  
+    
+If you don't set these, the chart will deploy but won't be reachable by you.  
+    
+Change the host option to be a subdomain under your DNS domain you created earlier.  To get better performance out of many of these tools it will be necessarry to carefully plan out resources.  Please view the optimization guide for more details.
+
+https://github.com/sealingtech/EDCOP/blob/master/docs/optimization_guide.rst
+
