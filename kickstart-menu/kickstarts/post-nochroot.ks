@@ -6,6 +6,7 @@ mkdir -p /mnt/sysimage/etc/cni/net.d/
 cp /tmp/vars /mnt/sysimage/EDCOP
 cp -r /mnt/sysimage/usr/share/syslinux/* /mnt/sysimage/EDCOP/pxe/
 cp -r /run/install/repo/* /mnt/sysimage/EDCOP/pxe/deploy
+cp -rf /build/isolinux/ks/* /mnt/sysimage/EDCOP/pxe/deploy/ks/
 cp -f /run/install/repo/EXTRAS/default /mnt/sysimage/EDCOP/pxe/pxelinux.cfg/default
 cp -f /run/install/repo/EXTRAS/firstboot/firstboot.sh /mnt/sysimage/root/firstboot.sh
 #cp -f /run/install/repo/EXTRAS/docker-images/*.gz /mnt/sysimage/EDCOP/images/

@@ -9,7 +9,7 @@ mkdir -p /etc/pki/tls/csr
 
 openssl req -subj '/CN=edcop-root/O=Sealing Technologies Inc/L=Columbia/ST=Maryland/C=US' -new -newkey rsa:2048 -sha256 -days 7300 -nodes -x509 -extensions v3_ca -keyout /etc/pki/CA/private/edcop-root.key -out /etc/pki/CA/certs/edcop-root.crt
 
-openssl req -subj '/CN=edcop-master.local/O=Sealing Technologies Inc/L=Columbia/ST=Maryland/C=US' -new -newkey rsa:2048 -sha256 -days 7300 -nodes -keyout /etc/pki/tls/private/server.key -out /etc/pki/tls/csr/edcop-master.csr
+openssl req -subj '/CN=$HOSTNAME/O=Sealing Technologies Inc/L=Columbia/ST=Maryland/C=US' -new -newkey rsa:2048 -sha256 -days 7300 -nodes -keyout /etc/pki/tls/private/server.key -out /etc/pki/tls/csr/edcop-master.csr
 
 openssl x509 -req -days 7300 -extensions server_cert -set_serial 01 -CA /etc/pki/CA/certs/edcop-root.crt -CAkey /etc/pki/CA/private/edcop-root.key -in /etc/pki/tls/csr/edcop-master.csr -out /etc/pki/tls/certs/server.crt
 
@@ -35,21 +35,13 @@ systemctl enable kubelet
 systemctl enable nginx
 systemctl enable dnsmasq
 
-# MASTER ONLY
-# Enable services required for NFS Persistent Volume
-#
-systemctl enable rpcbind
-systemctl enable nfs-server
-systemctl enable nfs-lock
-systemctl enable nfs-idmap
-
 cat <<EOF | tee /etc/dnsmasq.d/pxeboot.conf
-interface={{ data.network_pxe.interface }}
+interface=$PXEIF
 # and don't bind to 0.0.0.0
 bind-interfaces
 # extra logging
 log-dhcp
-dhcp-range={{ data.network_pxe.dhcp_start }},{{ data.network_pxe.dhcp_end }},1h
+dhcp-range=$DHCPSTART,$DHCPEND,1h
 # first IP address is the one of the host
 #dhcp-boot=pxelinux.0
 dhcp-vendorclass=BIOS,PXEClient:Arch:00000
@@ -74,7 +66,7 @@ EOF
 cat <<EOF | tee /etc/systemd/system/EDCOP-firstboot.service
 [Unit]
 Description=Auto-execute my post install scripts
-After=network.target
+After=network.target kubelet.service chronyd.service 
 
 [Service]
 ExecStart=/root/firstboot.sh
@@ -87,21 +79,21 @@ EOF
 
 cat <<EOF | tee /etc/cockpit/cockpit.conf
 [WebService]
-Origins = https://{{ data.host.name }} https://
+Origins = https://$HOSTNAME
 AllowUnencrypted=true
-UrlRoot=/admin/
+UrlRoot=/
 LoginTitle=EDCOP
 EOF
 
 chmod +x /root/firstboot.sh
 
-sed -i --follow-symlinks "s/{{ data.network_cluster.ip_address }}/g" /EDCOP/pxe/pxelinux.cfg/default
-sed -i --follow-symlinks "s/{{ data.network_cluster.ip_address }}/g" /EDCOP/pxe/deploy/ks/minion/main.ks
-sed -i --follow-symlinks "s/{{ data.network_cluster.ip_address }}/g" /EDCOP/pxe/deploy/ks/minion/grub.cfg
-sed -i --follow-symlinks "s/{{ data.storage_os._disk[0] }}/g" /EDCOP/pxe/deploy/ks/minion/main.ks
-sed -i --follow-symlinks "s/{{ data.network_pxe.interface }}/g" /EDCOP/pxe/deploy/ks/minion/main.ks
-sed -i --follow-symlinks "s/{{ data.network_cluster.interface }}/g" /EDCOP/pxe/deploy/ks/minion/main.ks
-sed -i "/localhost/ s/$/ edcop-master.local {{ data.host.name }}/" /etc/hosts
+sed -i --follow-symlinks "s/<insert-master-ip>/$PXEIP/g" /EDCOP/pxe/pxelinux.cfg/default
+sed -i --follow-symlinks "s/<insert-master-ip>/$PXEIP/g" /EDCOP/pxe/deploy/ks/minion/main.ks
+sed -i --follow-symlinks "s/<insert-master-ip>/$PXEIP/g" /EDCOP/pxe/deploy/ks/minion/grub.cfg
+sed -i --follow-symlinks "s/<insert-drive>/$DRIVE/g" /EDCOP/pxe/deploy/ks/minion/main.ks
+sed -i --follow-symlinks "s/<insert-pxeif>/$PXEIF/g" /EDCOP/pxe/deploy/ks/minion/main.ks
+sed -i --follow-symlinks "s/<insert-clusterif>/$MINIONIF/g" /EDCOP/pxe/deploy/ks/minion/main.ks
+sed -i "/localhost/ s/$/ master.local $HOSTNAME/" /etc/hosts
 
 cp /EDCOP/pxe/deploy/ks/minion/grub.cfg /EDCOP/pxe/
 cp /EDCOP/pxe/deploy/EFI/BOOT/grubx64.efi /EDCOP/pxe/
@@ -114,3 +106,4 @@ cat <<EOF | tee /etc/exports
 EOF
 
 %end
+
