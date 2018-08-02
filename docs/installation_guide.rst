@@ -269,18 +269,22 @@ When powering up the hosts, services will not start until the host is "uncordone
   
 After this process it may take services a few minutes to start up normally.
 
+
 If Elasticsearch is deployed, the proper method for shutting down nodes is to first disable shard allocation to ensure that the cluster doesn't attempt to recover.
 
 To perform the procedure from the master node, get the IP address of the data-service:
 
-::
+.. code-block:: bash
+
   [root@virtual ~]# kubectl get service
   NAME                               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                                        AGE
   data-service                       ClusterIP   10.111.51.141    <none>        9200/TCP,9300/TCP                              49m
 
 
 Run the fllowing curl command against the data-service IP from any node in the cluster.
-::
+
+.. code-block:: bash
+
   curl -X PUT "<ip of the data-service>:9200/_cluster/settings" -H 'Content-Type: application/json' -d'
   {
     "persistent": {
@@ -291,7 +295,8 @@ Run the fllowing curl command against the data-service IP from any node in the c
 
 Once maintenece is complete re-enable the allocation of shards:
 
-::
+.. code-block:: bash
+
   curl -X PUT "<ip of the data-service>:9200/_cluster/settings" -H 'Content-Type: application/json' -d'
   {
     "persistent": {
