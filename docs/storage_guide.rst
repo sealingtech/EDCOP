@@ -11,7 +11,7 @@ Understanding deployment.  Elasticsearch uses a Kubernetes structure called "sta
 
 This value can be changed in the Helm values if desired below.  This could be useful if it was desired to place this data on faster storage.  
 
-::
+.. code-block:: bash
 
   volumes:
     # Persistent data location on the host to store Elasticsearch's data
@@ -21,14 +21,14 @@ If the path is changed, it is necessary to change the ownership of the directory
 
 To change ownership run the command:
 
-::
+.. code-block:: bash
   
   chown -R elasticsearch:elasticsearch <path to new ES directory>
 
 
 To change location to store Elasticsearch:
 
-::
+.. code-block:: bash
 
 volumes:
   # Persistent data location on the host to store Elasticsearch's data
@@ -41,7 +41,7 @@ When first deploying Elasticsearch, the default is to deploy a single master nod
 
 In the values file when deployed you can set the number of workernodes and master nodes in the configuration.
 
-::
+.. code-block:: bash
 
   elasticsearchConfig:
     # runAsUser refers to the UID of the user who owns the persistent data location specified above
@@ -60,7 +60,7 @@ Once deployed, it is possible to increase the number of replicas at any time fro
 
 To view the number of workers and master run the command kubectl get statefulset to view the desired number of master and worker nodes.  Below we can see that there is one desired master node and currently there is one deployed.
 
-::
+.. code-block:: bash
 
   [root@virtual ~]# kubectl get statefulset
   NAME                                         DESIRED   CURRENT   AGE
@@ -70,13 +70,13 @@ To view the number of workers and master run the command kubectl get statefulset
 
 To scale additional worker nodes run the command:
 
-::
+.. code-block:: bash
 
   kubectl scale --replicas=<number of desired pods> default-elasticsearch-elasticsearch
 
 To scale additional master nodes run the command:
 
-::
+.. code-block:: bash
 
   kubectl scale --replicas=<number of desired pods> default-elastic-elasticsearch-master 
 
@@ -94,14 +94,16 @@ If it is necessary to reboot a physical node on the cluster, it is best to disab
 To perform the procedure from the master node, get the IP address of the data-service:
 
 
-::
+.. code-block:: bash
+
   [root@virtual ~]# kubectl get service
   NAME                               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                                        AGE
   data-service                       ClusterIP   10.111.51.141    <none>        9200/TCP,9300/TCP                              49m
 
 The disable allocation with the following command:
 
-::
+.. code-block:: bash
+
   curl -X PUT "<ip of the data-service>:9200/_cluster/settings" -H 'Content-Type: application/json' -d'
   {
     "persistent": {
@@ -112,7 +114,8 @@ The disable allocation with the following command:
 
 Once the node has been rebooted and maintenence is completed ensure that the pod is running again on the node that was rebooted.
 
-::
+.. code-block:: bash
+
   [root@virtual ~]# kubectl get pods -o wide
   NAME                                           READY     STATUS              RESTARTS   AGE       IP               NODE
   default-elasticsearch-elasticsearch-master-0   1/1       Running             0          55m       10.244.184.149   virtual.edcop.io
@@ -121,7 +124,8 @@ Once the node has been rebooted and maintenence is completed ensure that the pod
 Re-enable cluster allocation with the following command:
 
 
-::
+.. code-block:: bash
+
   curl -X PUT "<ip of the data-service>:9200/_cluster/settings" -H 'Content-Type: application/json' -d'
   {
     "persistent": {
