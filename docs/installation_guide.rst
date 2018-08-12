@@ -179,11 +179,12 @@ Nodes must be given roles in order to take certain tasks.  Each of these labels 
 
 .. code-block:: bash
 
-  kubectl label node <name of node> nodetype=worker
-  kubectl label node <name of node> sensor=true
-  kubectl label node <name of node> data=true
-  kubectl label node <name of node> infrastructure=true
-  kubectl label node <name of node> ingest=true
+  node=<name of node>
+  kubectl label node $node nodetype=worker
+  kubectl label node $node sensor=true
+  kubectl label node $node data=true
+  kubectl label node $node infrastructure=true
+  kubectl label node $node ingest=true
 
 
 Please see the node labelling guide  https://github.com/sealingtech/EDCOP/blob/master/docs/node_labels.rst
