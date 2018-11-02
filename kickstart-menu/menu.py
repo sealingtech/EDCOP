@@ -383,8 +383,8 @@ class PXENetForm(NetForm):
         self.netmask.value = self.network.netmask
         self.dhcp_start.value = self.network.dhcp_start
         self.dhcp_end.value = self.network.dhcp_end
-        self.dhcp_start.hidden = True
-        self.dhcp_end.hidden = True
+        self.dhcp_start.hidden = False
+        self.dhcp_end.hidden = False
         self.teaming.hidden = True
 
     def on_ok(self):
@@ -408,7 +408,7 @@ class PXENetForm(NetForm):
             
             self.network.network = networkID(self.network.ip_address, self.network.netmask)
             self.network.dhcp_start = self.dhcp_start.value
-            self.network.dhcp_end = self.dhcp_start.value
+            self.network.dhcp_end = self.dhcp_end.value
         
             # If there are no issues, jump to parent form, otherwise, alert so user can fix
             if (errors == ''):
