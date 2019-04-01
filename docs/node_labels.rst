@@ -78,3 +78,42 @@ External Mode
 External mode allows for data to be sent outside of the Kubernetes cluster into any Redis instance.  Redis can be hosted on an another Kubernetes cluster (Such as another EDCOP cluster deployed in another location that is reachable through a VPN).
 
 .. image:: images/Deployment_Options_External.png
+
+
+Custom labels
+=============
+It is possible to customize the node labels for more complex configurations.  For example, if you wanted to run a different set of sensors in different locations.  To do this, create a custom label and label the nodes according to your design.  When deploying tools in each YAML modify the label to match the label you created.
+
+.. code-block:: yaml
+  nodeSelector:
+    label: sensor
+
+For example consider a scenario where you wanted to configure Suricata on the external network and Bro on your internal network.  You configure minion-9384 to the external network and minion-8367 to the internal network.  To do this create a custom label and set the value to true.  
+
+.. code-block:: bash
+
+  kubectl label node minion-9384 sensor-external=true
+  kubectl label node minion-8367 sensor-internal=true
+
+When deploying Suricata modify the nodeSelector:
+
+.. code-block:: yaml
+  nodeSelector:
+    label: sensor-external
+
+When deploying Bro modify the nodeSelector:
+
+.. code-block:: yaml
+  nodeSelector:
+    label: sensor-internal
+
+To remove a label you can use the command:
+
+.. code-block:: bash
+
+  kubectl label node <node name> sensor-
+
+If you plan on using custom labels you may want to take care to not accidently deploy with the default nodeselectors.  You can remove the default labels (sensors, data, infrastructure, ingest).  If you accidently deploy the deployment will attempt to deploy and then find that there are valid nodes.
+
+
+

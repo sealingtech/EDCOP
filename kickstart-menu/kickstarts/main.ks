@@ -17,7 +17,7 @@ selinux --disabled
 # Reboot when complete
 reboot
 
-%include /run/install/repo/ks/network.ks
+%include /build/isolinux/ks/network.ks
 
 # Root password
 rootpw --plaintext open.local.box
@@ -26,10 +26,10 @@ timezone America/New_York --isUtc
 # System bootloader configuration
 
 
-%include /run/install/repo/ks/storage.ks
+%include /build/isolinux/ks/storage.ks
 
-%include /run/install/repo/ks/packages.ks
+%include /build/isolinux/ks/packages.ks
 
-%include /run/install/repo/ks/post-nochroot.ks
+%include /build/isolinux/ks/post-nochroot.ks
 
-%include /run/install/repo/ks/post-chroot.ks
+%include /build/isolinux/ks/post-chroot.ks

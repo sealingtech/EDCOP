@@ -30,7 +30,9 @@ curl --create-dirs $BASEURL/EFI/BOOT/mmia32.efi -o $ISOLINUXDIR/EFI/BOOT/mmia32.
 curl --create-dirs $BASEURL/EFI/BOOT/mmx64.efi -o $ISOLINUXDIR/EFI/BOOT/mmx64.efi
 curl --create-dirs $BASEURL/EFI/BOOT/fonts/unicode.pf2  -o $ISOLINUXDIR/EFI/BOOT/unicode.pf2
 
-cp -r ../kickstarts/* $ISOLINUXDIR/ks
+mkdir -p $ISOLINUXDIR/EXTRAS/kickstart-menu
+cp -r ../kickstart-menu/{classes.py,jinja2,kickstart.py,kickstarts,markupsafe,menu.py,npyscreen} $ISOLINUXDIR/EXTRAS/kickstart-menu
+cp -r ../kickstart-menu/kickstarts/* $ISOLINUXDIR/ks
 cp -f ./isolinux.cfg $ISOLINUXDIR/isolinux
 #mount -o loop $ISOLINUXDIR/images/efiboot.img $ISOLINUXDIR/EFI
 #mount $ISOLINUXDIR/images/efiboot.img $ISOLINUXDIR/EFI

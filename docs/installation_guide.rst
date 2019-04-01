@@ -9,9 +9,12 @@ In order to begin to install EDCOP the following will be needed:
 #. Two or more servers that support the following specs:
 
 - A processor and chipset supporting VT-X and VT-D.  These must be enabled in the BIOS.  Refer to your system manufacturer for this.  Dual processor systems are ideal due to to NUMA enhancements.  The more cores the better.
-- At least 2x nic ports supporting SR-IOV if using Passive only configuration and 4x nic ports if using inline and passive.  Currently only the Intel XL710 has been tested but others should work.  For an Intel list of supported cards see here: https://www.intel.com/content/www/us/en/support/articles/000005722/network-and-i-o/ethernet-products.html.  
-- At least one more nic port for building the system, 1 gbps is fine for this.
+- Two network interfaces, one for the PXE network that will be used to build minions and another interface for the internal and external network traffic using Calico.  PXE network should be completely isolated and non-routable.  The Internal network must be connected to the Internet at this time.  Isolated environments will be possible with some work to bring externally hosted resources into the network.
+- If you are planning on implementing network sensors such as Suricata or Bro, at least 2x nic ports supporting SR-IOV if using Passive only configuration and 4x nic ports if using inline and passive.  Currently only the Intel XL710 has been tested but others should work.  For an Intel list of supported cards see here: https://www.intel.com/content/www/us/en/support/articles/000005722/network-and-i-o/ethernet-products.html.  
 - At least two disk volumes, one will install the OS and the other will install additional storage for log analysis and other applications
+- Minimum two cores per host.
+- Minimum of 16GB of Ram per physical host.  Depending on applications deployed this number will need to be a lot higher.  16 GB will get you the Kubernetes cluster, elasticsearch and one or two tools.  More memory is always better.  Warning:  Kubernetes does not allow for Swap memory, this means that if you start to run out of memory, pods will be killed and weird things can begin to happen.  Monitor memory to ensure you aren't using more than 70% of memory.  The included Cockpit tool is useful for this.
+- Minimum two cores per host, recommend at least four.
 - A USB thumb drive of 8 GB or more
 - Servers should be identical configurations if possible, the Intel network card should be plugged into the exact same PCI-E slot.
 - Servers must be set to UEFI in the BIOS
@@ -19,15 +22,16 @@ In order to begin to install EDCOP the following will be needed:
 A master server will be chosen and be given a slightly different network configuration than all minions.  The master will be installed using a USB thumb drive.  The minons will be installed using PXE off of the master server.
 
 Network configuration
+=====================
 
 EDCOP requires a specific network configuration to work properly.  A switch will need to be configured with the following VLANS:
 
-- One vlan to support PXE booting.  This will be tied to all systems
-- One vlan to support the Calico Overlay network which will allow the containers in the Kubernetes cluster to communicate.  The master will optionally be connected to this VLAN over a LAGG connection and the minions will have a single port connected to this this.
+- One vlan to support PXE booting.  This will be tied to all systems and
+- One vlan to support the Calico Overlay network which will allow the containers in the Kubernetes cluster to communicate.  The master will optionally be connected to this VLAN over a LAGG connection and the minions will have a single port connected to this this.  This VLAN must have a route to your users as well as the Internet.
 
-For supporting network sensors (Bro, Suricata, Moloch, etc), additional network interfaces using SR-IOV will be required.  Two NICs for inline and one additional for passive.  Passive and inline can be used together and will require three total interface.
+For supporting network sensors (Bro, Suricata, Moloch, etc), additional network interfaces using SR-IOV will be required.  Two NICs for inline and one additional for passive.  Passive and inline can be used together and will require three total interfaces.
 
-.. image:: images/network_configuration.png
+For network deployment options see here https://github.com/sealingtech/EDCOP/blob/master/docs/network_design_and_deployment.rst
 
 DNS Requirements
 ================
@@ -40,11 +44,23 @@ You name the master, master.edcop.io and give it the IP of 192.168.1.10.  You cr
 It is necessarry to be able to resolve these entries from both inside the cluster as well as any clients accessing the cluster.  You must access the cluster by using the domain name and not by IP.
 
 
+What if I don't have a DNS server?
+==================================
+It is still possible to make it work, just not ideal.  It is possible to add entries to your /etc/hosts or on Windows (https://support.rackspace.com/how-to/modify-your-hosts-file).  Unfortunately the hosts file doesn't work with wild cards, so it will be necessary to add multiple entries.
+
+Currently there are five deployed with EDCOP:
+- https://admin.<fqdn>/
+- https://kubernetes.<fqdn>/
+- https://loadbalancer.<fqdn>/
+- https://apps.<fqdn>/
+- https://ceph.<fqdn>/
+
+These will need to be pointed at one of the servers (usually the master).  When adding new capabilities that have an Ingress (for example Kibana) you will need to add a new entry to your hosts file in order to deploy this capability.
 
 
 Building ISO image
 ==================
-Note- this step can be skipped if you don't want to build by hand.  Simply download the latest ISO from the realeases section.
+Note- This step can be skipped if you don't want to build by hand.  We reccomend you simply download the latest ISO from the releases section https://github.com/sealingtech/EDCOP/releases.
 
 You will need a workstation with Git, Docker and Make installed in order to build the image.  So far it has been tested to build with both Mac and Linux.  Docker can be installed here https://docs.docker.com/install/
 
@@ -92,9 +108,9 @@ NOTE: This procedure will ERASE everything on the master node and the minion nod
 You will be asked if you want to select the default network configuration, generally you will need to select "N" at this point.
 
 #. Enter the hostname, this must be an FQDN and match the DNS record entered earlier.
-#. You will be printed an interface list, select Y to team the interfaces for the master
-#. Enter in the name of the interfaces seperated by commas for all interfaces included in the LAGG
-#. Select "N" for DHCP
+#. You will be printed an interface list, select Y to team the interfaces if you plan on implemeting LAGG or N if you only are going to use a single interface for the host.  (Note at this time you must use a CAPITAL LETTER)
+#. Enter in the name of the interface you want to use for the main network if you selected N on the teaming question.  If you answered yes enter in the name of the interfaces seperated by commas for all interfaces included in the LAGG
+#. Select if your network uses DHCP
 #. Enter in the IP address to assign the master (Note, this must match the IP given to the DNS entry)
 #. Enter the netmask
 #. Enter the gateway
@@ -105,7 +121,7 @@ You will be asked if you want to select the default network configuration, gener
 #. Enter in the last octet of the starting IP (For example, if your IP address was 10.50.50.10 and you enter in 100 here then your starting IP will be 10.50.50.100)
 #. Enter in the last octet of the ending IP
 #. Enter Y to accept defaults for network_configuration
-#. You will be presented with the disks available on your system.  There will be a number by each of these, Enter in the number of the disk corresponding to the disk you would like to install the OS on
+#. You will be presented with the disks available on your system.  There will be a number by each of these, Enter in the number of the disk corresponding to the disk you would like to install the OS on as well as assign storage.  These drives can be the same for each option or they can be different.
 #. Enter in the number you would like to install the rest of the data to
 
 After this process is completed, the master will reboot. You can logon with root and the password open.local.box
@@ -158,18 +174,17 @@ From the command line, it is also possible to do this from the command line on t
 Labeling nodes
 ==============
 
-NOTE: This section will need to change when more granular roles are configured
-
 Nodes must be given roles in order to take certain tasks.  Each of these labels must be applied somwhere throughout the cluster.  For small deployments, simply label the master as all of them.  For larger deployments it is possible to selectively apply the labels to specific nodes throughout the cluster.
 
 
 .. code-block:: bash
 
-  kubectl label node <name of node> nodetype=worker
-  kubectl label node <name of node> sensor=true
-  kubectl label node <name of node> data=true
-  kubectl label node <name of node> infrastructure=true
-  kubectl label node <name of node> ingest=true
+  node=<name of node>
+  kubectl label node $node nodetype=worker
+  kubectl label node $node sensor=true
+  kubectl label node $node data=true
+  kubectl label node $node infrastructure=true
+  kubectl label node $node ingest=true
 
 
 Please see the node labelling guide  https://github.com/sealingtech/EDCOP/blob/master/docs/node_labels.rst
@@ -214,4 +229,83 @@ https://blogs.technet.microsoft.com/sbs/2008/05/08/installing-a-self-signed-cert
 Deploying Capabilities
 ======================
 
-To deploy additional tools users can go to apps.<fqdn> and select the applications to they want to deploy.  Selecting "Available Capabilities" will bring up a number of charts that can then be deployed.  Each chart will have built in instructions.  Many of these charts values are set to defaults that will work with smaller deployments but more planning is required for larger deployments to get more performance out of the tools.
+To deploy additional tools users can go to apps.<fqdn> and select the applications to they want to deploy.  Selecting "Available Capabilities" will bring up a number of charts that can then be deployed.  Each chart will have built in instructions.  Many of these charts values are set to defaults that will work with smaller deployments but more planning is required for larger deployments to get more performance out of the tools.  When you deploy capabilities with a web front end, make sure that you change the ingress host option.  
+
+For example with kibana:
+
+.. code-block:: bash
+
+  ingress:
+    #Enter the subdomain and the FQDN that will be used to access Kibana
+    host: kibana.edcop.io  
+    
+If you don't set these, the chart will deploy but won't be reachable by you.  
+    
+Change the host option to be a subdomain under your DNS domain you created earlier.  To get better performance out of many of these tools it will be necessarry to carefully plan out resources.  Please view the optimization guide for more details.
+
+https://github.com/sealingtech/EDCOP/blob/master/docs/optimization_guide.rst
+
+
+Proper shutdown procedure
+=========================
+
+EDCOP utiilizes the shared storage solution Rook (https://rook.io).  Because of this, special care should be taken when powering down nodes.  To drain nodes, the proper procedure is as follows:
+
+From the master server, get a list of all minions and then run the kubectl drain command below for the minion you want to shut down.  If this procedure is not followed hosts will not power down properly and data loss may occur.
+
+.. code-block:: bash
+
+  kubectl get minions
+  kubectl drain <each minion, one at a time if shutting down more than one> --ignore-daemonsets --delete-local-data
+  kubectl drain <the master goes last if you are shutting down the master as well> --ignore-daemonsets --delete-local-data
+
+Once this procedure is done it is safe to run shutdown now to power down each host.  
+
+When powering up the hosts, services will not start until the host is "uncordoned".  To do this, uncordon the master first, then each of the minions.
+
+.. code-block:: bash
+
+  kubectl uncordon <name of master>
+  kubectl uncordon <name of each minion>
+  
+After this process it may take services a few minutes to start up normally.
+
+
+If Elasticsearch is deployed, the proper method for shutting down nodes is to first disable shard allocation to ensure that the cluster doesn't attempt to recover.
+
+To perform the procedure from the master node, get the IP address of the data-service:
+
+.. code-block:: bash
+
+  [root@virtual ~]# kubectl get service
+  NAME                               TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                                        AGE
+  data-service                       ClusterIP   10.111.51.141    <none>        9200/TCP,9300/TCP                              49m
+
+
+Run the fllowing curl command against the data-service IP from any node in the cluster.
+
+.. code-block:: bash
+
+  curl -X PUT "<ip of the data-service>:9200/_cluster/settings" -H 'Content-Type: application/json' -d'
+  {
+    "persistent": {
+      "cluster.routing.allocation.enable": "none"
+    }
+  }
+  '
+
+Once maintenece is complete re-enable the allocation of shards:
+
+.. code-block:: bash
+
+  curl -X PUT "<ip of the data-service>:9200/_cluster/settings" -H 'Content-Type: application/json' -d'
+  {
+    "persistent": {
+      "cluster.routing.allocation.enable": null
+    }
+  }
+  '
+
+Monitor Kibana to ensure the cluster goes from yellow to green after a few minutes.
+
+

@@ -9,13 +9,13 @@ MASTERDNS=
 {%- else %}
 MASTERIP={{ data.network_cluster.ip_address }}
 MASTERNETMASK={{ data.network_cluster.netmask }}
-MASTERGW=
+MASTERGW={{ data.network_cluster.gateway }}
 MASTERDNS={{ data.network_cluster.dns1 }}
 {%- endif %}
 MINIONIF={{ data.network_cluster.interface[0] }}
-PXEIF={{ data.network_cluster.interface[0] }}
-PXEIP={{ data.network_cluster._ip_address }}
-PXENETMASK={{ data.network_cluster._netmask }}
+PXEIF={{ data.network_pxe.interface }}
+PXEIP={{ data.network_pxe._ip_address }}
+PXENETMASK={{ data.network_pxe._netmask }}
 PXENET={{ data.network_cluster.network }}
 DHCPSTART={{ data.network_pxe.dhcp_start }}
 DHCPEND={{ data.network_pxe.dhcp_end }}

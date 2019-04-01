@@ -2,7 +2,7 @@ from jinja2 import Environment, FileSystemLoader, Template, PackageLoader
 import sys
 import os
 
-KICKSTART_OUTPUT_DIRECTORY = "/run/install/repo/ks/"
+KICKSTART_OUTPUT_DIRECTORY = "/build/isolinux/ks/"
 
 def master():
     # data for master node(s)

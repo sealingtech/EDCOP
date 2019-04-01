@@ -6,6 +6,7 @@ import sys
 import npyscreen
 import classes
 import datetime
+import re
 from kickstart import *
 
 def str_ljust(_string):
@@ -371,26 +372,50 @@ class PXENetForm(NetForm):
         """Call before form is edited."""
         self.name = "EDCOP > Network > PXE"
         self.network = self.parentApp.network_pxe
-        self.interface.values = self.parentApp.host.interfaces
+        # combine interface with current operation state
+        interfaceState = curOperstate(self.parentApp.host.interfaces)
+        state = ['']*len(self.parentApp.host.interfaces)
+        for idx in range(len(self.parentApp.host.interfaces)):
+            state[idx] = self.parentApp.host.interfaces[idx] + " (" + interfaceState[idx] + ")"
+            
+        self.interface.values = state
         self.ipaddress.value = self.network.ip_address
         self.netmask.value = self.network.netmask
         self.dhcp_start.value = self.network.dhcp_start
         self.dhcp_end.value = self.network.dhcp_end
-        self.dhcp_start.hidden = True
-        self.dhcp_end.hidden = True
+        self.dhcp_start.hidden = False
+        self.dhcp_end.hidden = False
         self.teaming.hidden = True
 
     def on_ok(self):
         """Save network information to object."""
+        
+        errors = ''
         try:
             self.network.bootproto = self.parentApp.bootproto[self.bootproto.value[0]]
             self.network.interface = self.parentApp.host.interfaces[self.interface.value[0]]
-            self.network.ip_address = self.ipaddress.value
-            self.network.netmask = self.netmask.value
+            
+            if (validateIP(self.ipaddress.value) == True):
+                self.network.ip_address = self.ipaddress.value
+            else:
+                errors += '\nIP Address'
+                
+            
+            if (validateNetmask(self.netmask.value) == True):
+                self.network.netmask = self.netmask.value
+            else:
+                errors += '\nNetmask'
+            
             self.network.network = networkID(self.network.ip_address, self.network.netmask)
             self.network.dhcp_start = self.dhcp_start.value
-            self.network.dhcp_end = self.dhcp_start.value
-            self.parentApp.switchFormPrevious()
+            self.network.dhcp_end = self.dhcp_end.value
+        
+            # If there are no issues, jump to parent form, otherwise, alert so user can fix
+            if (errors == ''):
+                self.parentApp.switchFormPrevious()
+            else:
+                formMessage = "There appears to be missing or invalid data on the following fields: \n  \n  \n" + errors
+                npyscreen.notify_confirm(formMessage, title="Error")
         except IndexError:
             npyscreen.notify_confirm("Please select a valid interface", title="Error")
 
@@ -406,7 +431,13 @@ class ClusterNetForm(NetForm):
         self.name = "EDCOP > Network > Cluster"
         self.network = self.parentApp.network_cluster
         self.ipaddress.value = self.network.ip_address
-        self.interface.values = self.parentApp.host.interfaces
+        # combine interface with current operation state
+        interfaceState = curOperstate(self.parentApp.host.interfaces)
+        state = ['']*len(self.parentApp.host.interfaces)
+        for idx in range(len(self.parentApp.host.interfaces)):
+            state[idx] = self.parentApp.host.interfaces[idx] + " (" + interfaceState[idx] + ")"
+            
+        self.interface.values = state
         self.ipaddress.value = self.network.ip_address
         self.netmask.value = self.network.netmask
         self.dns1.value = self.network.dns1
@@ -419,21 +450,50 @@ class ClusterNetForm(NetForm):
 
     def on_ok(self):
         """Save network information to object."""
+        
+        errors = ''
         try:
             interfaceList = []
             for index in range(len(self.interface.value)):
                 interfaceList.append(self.parentApp.host.interfaces[self.interface.value[index]])
             self.network.interface = interfaceList
             self.network.bootproto = self.parentApp.bootproto[self.bootproto.value[0]]
-            self.network.ip_address = self.ipaddress.value
-            self.network.netmask = self.netmask.value
-            self.network.network = networkID(self.network.ip_address, self.network.netmask)
-            self.network.dns1 = self.dns1.value
-            self.network.dns2 = self.dns2.value
-            self.network.gateway = self.gateway.value
             self.network.teaming = self.parentApp.teaming[self.teaming.value[0]]
-                      
-            self.parentApp.switchFormPrevious()
+            
+            if (validateIP(self.ipaddress.value) == True):
+                self.network.ip_address = self.ipaddress.value
+            else:
+                errors += '\nIP Address'
+                
+            if (validateNetmask(self.netmask.value) == True):
+                self.network.netmask = self.netmask.value
+            else:
+                errors += '\nNetmask'
+                
+            self.network.network = networkID(self.network.ip_address, self.network.netmask)
+            
+            if (validateIP(self.dns1.value) == True):
+                self.network.dns1 = self.dns1.value
+            else:
+                errors += '\nDNS1'
+            
+            if (validateIP(self.dns2.value) == True):
+                self.network.dns2 = self.dns2.value
+            else:
+                errors += '\nDNS2'
+            
+            if (validateIP(self.gateway.value) == True):
+                self.network.gateway = self.gateway.value
+            else:
+                errors += '\nGateway'
+                
+            
+            # If there are no issues, jump to parent form, otherwise, alert so user can fix
+            if (errors == ''):
+                self.parentApp.switchFormPrevious()
+            else:
+                formMessage = "There appears to be missing or invalid data on the following fields: \n  \n  \n" + errors
+                npyscreen.notify_confirm(formMessage, title="Error")
         except IndexError:
             npyscreen.notify_confirm("Please select a valid interface", title="Error")
 
@@ -524,6 +584,9 @@ class EDCOPOSForm(StorageEditForm):
     
     def on_ok(self):
         pass
+    
+    
+# Helper functions
 
 def logData(KICKSTART_MENU):
     # Dump various data to a log file for TSHOOT purposes
@@ -563,7 +626,72 @@ def networkID(ip, netmask):
         network[ind] = int(ip_split[ind]) & int(netmask_split[ind])
     
     return '.'.join(str(idx) for idx in network)
-      
+
+def curOperstate(interfaces):
+    # Get the operational status of every NIC
+    state = []
+    for name in os.listdir('/sys/class/net'):
+            if not name == 'lo':
+                state.append(open("/sys/class/net/"+name+"/operstate", "r").read().strip('\n'))           
+    return state
+
+def validateIP(IP):
+    # validate that a passed in IP is valid or not.
+    # Return: true if valid, false if not valid
+
+    # make sure user doesn't put in "potato" for an IP
+    octet = IP.split('.')
+    if len(octet) != 4: 
+        return False
+    try: 
+        isValid = all(0<=int(idx)<256 for idx in octet)
+        if isValid is False:
+            return False
+    except ValueError: 
+        return False
+    
+    
+    # verify that the first octet isn't 0
+    firstOctet = re.search('^(0).*', IP)
+    
+    try:
+        if (firstOctet.group(1) == '0'):
+            return False
+    except:
+        pass
+    
+    return True
+
+def validateNetmask(mask):
+    # validate that a passed in network mask is valid or not.
+    # Return: true if valid, false if not valid
+    
+    maskGroup = re.search('^(\d{1,3})[.](\d{1,3})[.](\d{1,3})[.](\d{1,3})$', mask)
+    
+    # See if anything matched
+    if (maskGroup is None):
+        return False
+    
+    # Check to see if netmask is non-zero
+    if(maskGroup.group(1) == '0'):
+        return False
+    
+    # validate mask is actually valid
+    count = 7
+    val = 0
+    maskValues = ['0']
+    while count >= 0:
+        val += 0b1 << count
+        maskValues.append(str(val))
+        count -= 1
+        
+    for idx in range(1,5):
+        if (any(maskGroup.group(idx) in item for item in maskValues) != True):
+            return False
+        
+    return True
+
+
       
 if __name__ == '__main__':
     try:
@@ -579,5 +707,3 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         logData(KICKSTART_MENU)
         sys.exit(0)
-
-    
