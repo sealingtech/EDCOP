@@ -26,7 +26,11 @@ node {
     sh "make iso" 
   }
 
-  stage('Move ISO to /tmp of the Jenkins CONTAINER') {
-    sh "mv EDCOP-dev.iso /tmp/" 
+  stage('Output of the directory') {
+      sh "ls -la"
+  }
+
+  stage('Current Location on the Docker Container of the files.  To access them you must access the Jenkins container and then copy the files over') {
+      sh "pwd"
   }
 }
