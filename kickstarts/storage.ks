@@ -1,2 +1,0 @@
-%include /tmp/pre-storage
-

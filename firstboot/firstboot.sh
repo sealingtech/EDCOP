@@ -51,7 +51,7 @@ ping_gw || (echo "Script can not start with no internet" && exit 1)
 
 token=$(kubeadm token generate)
 sleep 30
-kubeadm init --pod-network-cidr=10.244.0.0/16 --kubernetes-version 1.10.2 --token $token --token-ttl 0
+kubeadm init --pod-network-cidr=10.244.0.0/16 --kubernetes-version 1.15.3 --token $token --token-ttl 0
 
 #
 # Apply the token and PXEboot IP address to the minion kickstart
